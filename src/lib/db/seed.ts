@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+
 import { db } from "../db";
 import { routes } from "./schema";
 
@@ -16,4 +19,14 @@ export async function seed() {
   console.log("Seeding routes...");
   await db.insert(routes).values(sampleRoutes);
   console.log("Seeding complete!");
+}
+
+// Execute seed if this file is run directly
+if (require.main === module) {
+  seed()
+    .then(() => process.exit(0))
+    .catch((err) => {
+      console.error(err);
+      process.exit(1);
+    });
 }
