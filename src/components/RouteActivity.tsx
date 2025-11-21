@@ -4,6 +4,7 @@ import { useOptimistic, useRef, useState, useTransition } from "react";
 import { logActivity, savePersonalNote, logAttempt } from "@/app/actions";
 import { Send, Zap, MessageSquare, Eye, EyeOff, StickyNote, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 type ActivityLog = {
   id: string;
@@ -89,9 +90,6 @@ export default function RouteActivity({
 
   async function handleAttempt() {
     if (!user) return;
-    // Optimistic update not strictly necessary for attempt count unless we show it immediately, 
-    // but we can show a toast or just rely on revalidation.
-    // For now, just call the action.
     await logAttempt(routeId);
   }
 
@@ -109,71 +107,61 @@ export default function RouteActivity({
   };
 
   return (
-    <div className="space-y-8">
-      {/* Actions */}
-      <div className="grid grid-cols-3 gap-3">
+    <div className="space-y-12">
+      {/* Control Panel */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <button 
           onClick={() => handleAction("SEND", "Sent it!")}
           disabled={!user || isPending}
-          className="flex flex-col items-center justify-center gap-1 bg-green-50 text-green-700 border border-green-200 py-3 rounded-xl font-bold hover:bg-green-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="h-12 bg-white border-2 border-black hover:bg-black hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-sm"
         >
-          <Send className="w-5 h-5" /> 
-          <span className="text-xs">Log Send</span>
+          <Send className="w-4 h-4" /> Log Send
         </button>
 
         <button 
           onClick={() => handleAction("FLASH", "Flashed it!")}
           disabled={!user || isPending}
-          className="flex flex-col items-center justify-center gap-1 bg-yellow-50 text-yellow-700 border border-yellow-200 py-3 rounded-xl font-bold hover:bg-yellow-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="h-12 bg-white border-2 border-black hover:bg-yellow-400 hover:border-yellow-400 hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-sm"
         >
-          <Zap className="w-5 h-5" /> 
-          <span className="text-xs">Log Flash</span>
+          <Zap className="w-4 h-4" /> Log Flash
         </button>
 
         <button 
           onClick={handleAttempt}
           disabled={!user || isPending}
-          className="flex flex-col items-center justify-center gap-1 bg-slate-50 text-slate-700 border border-slate-200 py-3 rounded-xl font-bold hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="h-12 bg-white border-2 border-black hover:bg-slate-200 hover:border-slate-200 hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-sm"
         >
-          <CheckCircle2 className="w-5 h-5" /> 
-          <span className="text-xs">Log Attempt</span>
+          <CheckCircle2 className="w-4 h-4" /> Log Attempt
         </button>
       </div>
 
       {/* Personal Notes */}
       {user && (
-        <div className="bg-yellow-50/50 p-4 rounded-xl border border-yellow-100">
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-bold text-yellow-800 flex items-center gap-2">
-              <StickyNote className="w-4 h-4" /> Personal Notes
+            <h3 className="text-xs font-bold uppercase tracking-widest text-yellow-800 flex items-center gap-2">
+              <StickyNote className="w-3 h-3" /> Personal Notes
             </h3>
-            {isSavingNote && <span className="text-xs text-yellow-600 animate-pulse">Saving...</span>}
+            {isSavingNote && <span className="text-[10px] font-mono text-yellow-600">Saving...</span>}
           </div>
           <textarea
             value={personalNote}
             onChange={(e) => setPersonalNote(e.target.value)}
             onBlur={handleSaveNote}
-            placeholder="Add private notes about beta, attempts, etc..."
-            className="w-full bg-white border border-yellow-200 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 min-h-[80px] resize-y"
+            placeholder="Add private notes..."
+            className="w-full bg-transparent text-slate-800 text-sm focus:outline-none min-h-[80px] resize-y placeholder:text-yellow-700/30"
           />
         </div>
       )}
 
-      {/* Sends List */}
+      {/* Sends Ticker */}
       {sends.length > 0 && (
-        <div>
-          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Sends</h3>
+        <div className="border-y border-slate-200 py-4">
+          <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Recent Sends</h3>
           <div className="flex flex-wrap gap-2">
             {sends.map((log) => (
-              <div key={log.id} className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100" title={new Date(log.created_at!).toLocaleDateString()}>
-                {log.user_image ? (
-                  <img src={log.user_image} alt={log.user_name || "User"} className="w-5 h-5 rounded-full" />
-                ) : (
-                  <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500">
-                    {log.user_name?.[0] || "?"}
-                  </div>
-                )}
-                <span className="text-sm font-medium text-slate-700">{log.user_name}</span>
+              <div key={log.id} className="flex items-center gap-2 bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700" title={new Date(log.created_at!).toLocaleDateString()}>
+                <span>{log.user_name}</span>
                 {log.action_type === "FLASH" && <Zap className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
               </div>
             ))}
@@ -181,107 +169,106 @@ export default function RouteActivity({
         </div>
       )}
 
-      {/* Comments */}
-      <div>
-        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-          <MessageSquare className="w-4 h-4" /> Comments
+      {/* Activity Stream */}
+      <div className="relative">
+        <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
+          <MessageSquare className="w-3 h-3" /> Activity Log
         </h3>
 
-        <form 
-          ref={formRef}
-          action={async (formData) => {
-            const content = formData.get("content") as string;
-            if (!content) return;
-            await handleAction("COMMENT", content, { is_beta: isBeta });
-          }} 
-          className="mb-8"
-        >
-          <div className="flex gap-2 mb-2">
-            <input 
-              name="content" 
-              type="text" 
-              placeholder={user ? "Add a comment..." : "Sign in to comment"} 
-              className="flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:bg-gray-100"
-              required
-              disabled={!user}
-            />
-            <button 
-              type="submit" 
-              disabled={!user || isPending}
-              className="bg-violet-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Post
-            </button>
-          </div>
-          {user && (
-            <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer w-fit">
+        {/* Input Area */}
+        <div className="mb-10">
+          <form 
+            ref={formRef}
+            action={async (formData) => {
+              const content = formData.get("content") as string;
+              if (!content) return;
+              await handleAction("COMMENT", content, { is_beta: isBeta });
+            }} 
+          >
+            <div className="flex gap-4">
               <input 
-                type="checkbox" 
-                checked={isBeta} 
-                onChange={(e) => setIsBeta(e.target.checked)}
-                className="rounded border-gray-300 text-violet-600 focus:ring-violet-500"
+                name="content" 
+                type="text" 
+                placeholder={user ? "Write a comment..." : "Sign in to comment"} 
+                className="flex-1 border-b-2 border-slate-200 bg-transparent py-2 text-sm focus:outline-none focus:border-black transition-colors disabled:opacity-50"
+                required
+                disabled={!user}
               />
-              <span>Contains Beta (Spoiler)</span>
-            </label>
-          )}
-        </form>
+              <button 
+                type="submit" 
+                disabled={!user || isPending}
+                className="font-bold text-xs uppercase tracking-widest hover:text-violet-600 transition-colors disabled:opacity-50"
+              >
+                Post
+              </button>
+            </div>
+            {user && (
+              <label className="flex items-center gap-2 text-xs text-slate-500 cursor-pointer mt-2 w-fit hover:text-black transition-colors">
+                <input 
+                  type="checkbox" 
+                  checked={isBeta} 
+                  onChange={(e) => setIsBeta(e.target.checked)}
+                  className="rounded border-slate-300 text-black focus:ring-0"
+                />
+                <span>Contains Beta</span>
+              </label>
+            )}
+          </form>
+        </div>
 
-        <div className="space-y-6">
+        {/* Stream Items */}
+        <div className="space-y-8 pl-4 border-l-2 border-slate-100">
           {comments.map((log) => {
             const isHidden = log.metadata?.is_beta && !revealedBeta.has(log.id);
             
             return (
-              <div key={log.id} className="flex gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                {log.user_image ? (
-                  <img src={log.user_image} alt={log.user_name || "User"} className="w-10 h-10 rounded-full" />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold">
-                    {log.user_name?.[0] || "?"}
-                  </div>
-                )}
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Link href={`/profile/${encodeURIComponent(log.user_id)}`} className="font-bold text-gray-900 hover:underline">
-                      {log.user_name || "Unknown Climber"}
-                    </Link>
-                    <span className="text-xs text-gray-500">
-                      • {log.created_at ? new Date(log.created_at).toLocaleDateString() : "Just now"}
-                    </span>
-                    {log.metadata?.is_beta && (
-                      <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200">BETA</span>
-                    )}
-                  </div>
-                  
-                  <div className="text-gray-800">
-                    {isHidden ? (
-                      <button 
-                        onClick={() => toggleBeta(log.id)}
-                        className="flex items-center gap-2 text-slate-500 bg-slate-50 px-3 py-2 rounded-lg text-sm hover:bg-slate-100 transition-colors w-full text-left"
-                      >
-                        <EyeOff className="w-4 h-4" />
-                        <span>Spoiler: Click to reveal beta</span>
-                      </button>
-                    ) : (
-                      <div className="relative group">
-                        <p>{log.content}</p>
-                        {log.metadata?.is_beta && (
-                          <button 
-                            onClick={() => toggleBeta(log.id)}
-                            className="absolute -right-2 -top-2 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-slate-600"
-                            title="Hide beta"
-                          >
-                            <Eye className="w-3 h-3" />
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
+              <div key={log.id} className="relative pl-6 animate-in fade-in slide-in-from-left-2 duration-300">
+                {/* Timeline Dot */}
+                <div className="absolute -left-[5px] top-1.5 w-2 h-2 bg-slate-300 rounded-full ring-4 ring-white" />
+
+                <div className="flex items-baseline gap-3 mb-1">
+                  <Link href={`/profile/${encodeURIComponent(log.user_id)}`} className="font-bold text-sm hover:underline">
+                    {log.user_name || "Unknown"}
+                  </Link>
+                  <span className="text-xs text-slate-400">
+                    {log.created_at ? new Date(log.created_at).toLocaleDateString() : "Just now"}
+                  </span>
+                  {log.metadata?.is_beta && (
+                    <span className="text-[9px] font-bold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">BETA</span>
+                  )}
+                </div>
+                
+                <div className="text-sm text-slate-600 leading-relaxed">
+                  {isHidden ? (
+                    <button 
+                      onClick={() => toggleBeta(log.id)}
+                      className="flex items-center gap-2 text-slate-400 hover:text-black transition-colors italic"
+                    >
+                      <EyeOff className="w-3 h-3" />
+                      <span>Spoiler hidden. Click to reveal.</span>
+                    </button>
+                  ) : (
+                    <div className="relative group">
+                      <p>{log.content}</p>
+                      {log.metadata?.is_beta && (
+                        <button 
+                          onClick={() => toggleBeta(log.id)}
+                          className="absolute -right-6 top-0 opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 hover:text-black"
+                          title="Hide beta"
+                        >
+                          <Eye className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             );
           })}
           {comments.length === 0 && (
-            <p className="text-gray-500 italic text-center py-4 text-sm">No comments yet.</p>
+            <div className="pl-6">
+               <p className="text-slate-400 text-sm italic">No activity logged yet.</p>
+            </div>
           )}
         </div>
       </div>
