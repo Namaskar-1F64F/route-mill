@@ -8,6 +8,7 @@ interface SettingsContextType {
   gradeDisplay: GradeDisplay;
   setGradeDisplay: (display: GradeDisplay) => void;
   toggleGradeDisplay: () => void;
+  showDifficulty: boolean;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -32,8 +33,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     setGradeDisplay((prev) => (prev === "v-scale" ? "difficulty" : "v-scale"));
   };
 
+  const showDifficulty = gradeDisplay === "difficulty";
+
   return (
-    <SettingsContext.Provider value={{ gradeDisplay, setGradeDisplay, toggleGradeDisplay }}>
+    <SettingsContext.Provider value={{ gradeDisplay, setGradeDisplay, toggleGradeDisplay, showDifficulty }}>
       {children}
     </SettingsContext.Provider>
   );

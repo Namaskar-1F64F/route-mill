@@ -13,20 +13,31 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
   const decodedUserId = decodeURIComponent(userId);
   const activity = await getUserActivity(decodedUserId);
 
-  if (activity.length === 0) {
-    return (
-      <div className="p-6 max-w-2xl mx-auto text-center">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">User Not Found</h1>
-        <p className="text-gray-500">This user has no public activity.</p>
-      </div>
-    );
-  }
+  const isOwnProfile = session.user.id === decodedUserId;
 
-  const user = {
-    name: activity[0].user_name || "Unknown Climber",
-    image: activity[0].user_image,
-    email: activity[0].user_id,
+  let user = {
+    name: activity[0]?.user_name || "Unknown Climber",
+    image: activity[0]?.user_image,
+    id: activity[0]?.user_id || decodedUserId,
   };
+
+  if (activity.length === 0) {
+    if (isOwnProfile) {
+      user = {
+        name: session.user.name || "Unknown Climber",
+        image: session.user.image || null,
+        id: session.user.id || decodedUserId,
+      };
+    } else {
+      // For other users with no activity, we don't have their info.
+      // We'll show a generic profile.
+      user = {
+        name: "Unknown Climber",
+        image: null,
+        id: decodedUserId,
+      };
+    }
+  }
 
   const stats = {
     sends: activity.filter(a => a.action_type === "SEND").length,

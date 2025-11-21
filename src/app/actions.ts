@@ -36,7 +36,7 @@ const RouteSchema = z.object({
 export async function createRoute(data: typeof routes.$inferInsert) {
   const session = await auth();
   if (!isAdmin(session?.user?.email)) throw new Error("Unauthorized");
-  
+
   const validated = RouteSchema.parse(data);
   await db.insert(routes).values(validated);
   revalidatePath("/gym");
@@ -46,7 +46,7 @@ export async function createRoute(data: typeof routes.$inferInsert) {
 export async function updateRoute(id: string, data: Partial<typeof routes.$inferInsert>) {
   const session = await auth();
   if (!isAdmin(session?.user?.email)) throw new Error("Unauthorized");
-  
+
   const validated = RouteSchema.partial().parse(data);
   await db.update(routes).set(validated).where(eq(routes.id, id));
   revalidatePath(`/route/${id}`);
@@ -57,7 +57,7 @@ export async function updateRoute(id: string, data: Partial<typeof routes.$infer
 export async function deleteRoute(id: string) {
   const session = await auth();
   if (!isAdmin(session?.user?.email)) throw new Error("Unauthorized");
-  
+
   if (!id) throw new Error("ID is required");
   await db.delete(routes).where(eq(routes.id, id));
   revalidatePath("/gym");
@@ -72,13 +72,13 @@ export async function getGradeDistribution() {
     })
     .from(routes)
     .groupBy(routes.grade);
-    
+
   return distribution;
 }
 
 export async function logActivity(data: typeof activityLogs.$inferInsert) {
   await db.insert(activityLogs).values(data);
-  
+
   // Increment tick count in KV if it's a send or flash
   if (data.action_type === "SEND" || data.action_type === "FLASH") {
     try {
@@ -94,10 +94,10 @@ export async function logActivity(data: typeof activityLogs.$inferInsert) {
 
 export async function logAttempt(routeId: string) {
   const session = await auth();
-  if (!session?.user?.email) throw new Error("Unauthorized");
+  if (!session?.user?.id) throw new Error("Unauthorized");
 
   await logActivity({
-    user_id: session.user.email,
+    user_id: session.user.id,
     user_name: session.user.name,
     user_image: session.user.image,
     route_id: routeId,
@@ -108,11 +108,11 @@ export async function logAttempt(routeId: string) {
 
 export async function savePersonalNote(routeId: string, content: string) {
   const session = await auth();
-  if (!session?.user?.email) throw new Error("Unauthorized");
+  if (!session?.user?.id) throw new Error("Unauthorized");
 
   const existing = await db.select().from(personalNotes).where(
     and(
-      eq(personalNotes.user_id, session.user.email),
+      eq(personalNotes.user_id, session.user.id),
       eq(personalNotes.route_id, routeId)
     )
   );
@@ -123,22 +123,22 @@ export async function savePersonalNote(routeId: string, content: string) {
       .where(eq(personalNotes.id, existing[0].id));
   } else {
     await db.insert(personalNotes).values({
-      user_id: session.user.email,
+      user_id: session.user.id,
       route_id: routeId,
       content,
     });
   }
-  
+
   revalidatePath(`/route/${routeId}`);
 }
 
 export async function getPersonalNote(routeId: string) {
   const session = await auth();
-  if (!session?.user?.email) return null;
+  if (!session?.user?.id) return null;
 
   const note = await db.select().from(personalNotes).where(
     and(
-      eq(personalNotes.user_id, session.user.email),
+      eq(personalNotes.user_id, session.user.id),
       eq(personalNotes.route_id, routeId)
     )
   );
@@ -167,10 +167,10 @@ export async function getGlobalActivity() {
     setter_name: routes.setter_name,
     set_date: routes.set_date,
   })
-  .from(activityLogs)
-  .leftJoin(routes, eq(activityLogs.route_id, routes.id))
-  .orderBy(desc(activityLogs.created_at))
-  .limit(50);
+    .from(activityLogs)
+    .leftJoin(routes, eq(activityLogs.route_id, routes.id))
+    .orderBy(desc(activityLogs.created_at))
+    .limit(50);
 }
 
 export async function getUserActivity(userId: string) {
@@ -190,10 +190,10 @@ export async function getUserActivity(userId: string) {
     setter_name: routes.setter_name,
     set_date: routes.set_date,
   })
-  .from(activityLogs)
-  .leftJoin(routes, eq(activityLogs.route_id, routes.id))
-  .where(eq(activityLogs.user_id, userId))
-  .orderBy(desc(activityLogs.created_at));
+    .from(activityLogs)
+    .leftJoin(routes, eq(activityLogs.route_id, routes.id))
+    .where(eq(activityLogs.user_id, userId))
+    .orderBy(desc(activityLogs.created_at));
 }
 
 export async function ingestRoutes() {
@@ -235,17 +235,17 @@ export async function ingestRoutes() {
         // Parse date
         const date = new Date(dateStr);
         if (isNaN(date.getTime())) {
-           date.setTime(Date.now());
+          date.setTime(Date.now());
         } else {
-            const currentYear = new Date().getFullYear();
-            date.setFullYear(currentYear);
+          const currentYear = new Date().getFullYear();
+          date.setFullYear(currentYear);
         }
         const dateIso = date.toISOString().split('T')[0]; // YYYY-MM-DD
 
         // Check for existing route with EXACT match on key properties
-        const existingRoute = activeRoutes.find(r => 
-          r.grade === grade && 
-          r.color === color && 
+        const existingRoute = activeRoutes.find(r =>
+          r.grade === grade &&
+          r.color === color &&
           r.difficulty_label === (label || null) &&
           r.set_date === dateIso // Strict date match
         );
@@ -266,7 +266,7 @@ export async function ingestRoutes() {
             attributes: name ? [name] : [],
             difficulty_label: label || null,
           }).returning({ id: routes.id });
-          
+
           count++;
           processedRouteIds.add(newRoute[0].id);
         }
@@ -276,7 +276,7 @@ export async function ingestRoutes() {
       for (const route of activeRoutes) {
         if (!processedRouteIds.has(route.id)) {
           await db.update(routes)
-            .set({ 
+            .set({
               status: "archived",
               removed_at: new Date()
             })
@@ -285,17 +285,17 @@ export async function ingestRoutes() {
         }
       }
     }
-    
+
     revalidatePath("/gym");
     revalidatePath("/admin");
     return { success: true, count, archivedCount };
   } catch (error: any) {
     console.error("Ingestion failed:", error);
-    
+
     if (error.code === 403 || error.status === 403 || (error.message && error.message.includes("permission"))) {
-      return { 
-        success: false, 
-        error: "Permission denied. Please ensure the Google Sheet is 'Public' (Anyone with the link can view) since we are using an API Key." 
+      return {
+        success: false,
+        error: "Permission denied. Please ensure the Google Sheet is 'Public' (Anyone with the link can view) since we are using an API Key."
       };
     }
 
@@ -305,14 +305,14 @@ export async function ingestRoutes() {
 
 export async function rateRoute(routeId: string, rating: number) {
   const session = await auth();
-  if (!session?.user?.email) throw new Error("Unauthorized");
-  
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
   if (rating < 1 || rating > 5) throw new Error("Invalid rating");
 
   // Delete existing rating
   await db.delete(activityLogs).where(
     and(
-      eq(activityLogs.user_id, session.user.email),
+      eq(activityLogs.user_id, session.user.id),
       eq(activityLogs.route_id, routeId),
       eq(activityLogs.action_type, "RATING")
     )
@@ -320,7 +320,7 @@ export async function rateRoute(routeId: string, rating: number) {
 
   // Insert new rating
   await db.insert(activityLogs).values({
-    user_id: session.user.email,
+    user_id: session.user.id,
     user_name: session.user.name,
     user_image: session.user.image,
     route_id: routeId,
@@ -348,7 +348,7 @@ export type BrowserRoute = {
 
 export async function getBrowserRoutes(): Promise<BrowserRoute[]> {
   const session = await auth();
-  const userId = session?.user?.email;
+  const userId = session?.user?.id;
 
   // 1. Get all active routes
   const activeRoutes = await db.select().from(routes).where(eq(routes.status, "active"));
@@ -390,7 +390,7 @@ export async function getBrowserRoutes(): Promise<BrowserRoute[]> {
 
   // Aggregates
   const ratings: Record<string, number[]> = {};
-  
+
   for (const log of allActivity) {
     const route = routeMap.get(log.route_id);
     if (!route) continue;

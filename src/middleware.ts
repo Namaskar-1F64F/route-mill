@@ -1,7 +1,17 @@
 import { auth } from "@/lib/auth"
 
-export default auth((_req) => {
-  // req.auth
+export default auth((req) => {
+  const isLoggedIn = !!req.auth;
+  const isOnDashboard = req.nextUrl.pathname.startsWith('/gym') ||
+    req.nextUrl.pathname.startsWith('/routes') ||
+    req.nextUrl.pathname.startsWith('/feed') ||
+    req.nextUrl.pathname.startsWith('/profile') ||
+    req.nextUrl.pathname.startsWith('/admin');
+
+  if (isOnDashboard) {
+    if (isLoggedIn) return;
+    return Response.redirect(new URL('/api/auth/signin', req.nextUrl));
+  }
 })
 
 // Optionally, don't invoke Middleware on some paths

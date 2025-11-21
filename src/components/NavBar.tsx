@@ -16,7 +16,7 @@ export default function NavBar({ user, isAdmin }: { user?: User | null, isAdmin?
     { name: "Map", href: "/gym", icon: Map },
     { name: "Routes", href: "/routes", icon: List },
     { name: "Feed", href: "/feed", icon: Activity },
-    ...(user ? [{ name: "Profile", href: "/profile", icon: UserIcon }] : []),
+    ...(user ? [{ name: "Profile", href: `/profile/${user.id}`, icon: UserIcon }] : []),
     ...(isAdmin ? [{ name: "Admin", href: "/admin", icon: Settings }] : []),
   ];
 

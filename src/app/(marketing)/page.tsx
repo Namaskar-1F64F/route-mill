@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Mountain, Map, Users, Trophy } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
+import { LoginButton } from "@/components/LoginButton"
 
 export default function LandingPage() {
   return (
@@ -28,6 +29,7 @@ export default function LandingPage() {
           <Link className="text-xs font-mono uppercase tracking-widest hover:underline underline-offset-4 hover:text-yellow-600 transition-colors" href="#">
             About
           </Link>
+          <LoginButton />
         </nav>
       </header>
       <main className="flex-1 relative z-10">
@@ -43,7 +45,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="space-x-4 pt-8">
-                <Link href="#">
+                <Link href="/gym">
                   <Button size="lg" variant="primary">Get Started</Button>
                 </Link>
                 <Link href="#">
