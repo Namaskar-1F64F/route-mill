@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { routes, activityLogs } from "@/lib/db/schema";
+import { routes, activityLogs, personalNotes } from "@/lib/db/schema";
 import { desc, eq, sql, and, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redis } from "@/lib/kv";
@@ -29,6 +29,8 @@ const RouteSchema = z.object({
   set_date: z.string(),
   status: z.string().optional(),
   attributes: z.array(z.string()).optional(),
+  setter_notes: z.string().optional(),
+  difficulty_label: z.string().optional(),
 });
 
 export async function createRoute(data: typeof routes.$inferInsert) {
@@ -90,6 +92,60 @@ export async function logActivity(data: typeof activityLogs.$inferInsert) {
   revalidatePath("/feed");
 }
 
+export async function logAttempt(routeId: string) {
+  const session = await auth();
+  if (!session?.user?.email) throw new Error("Unauthorized");
+
+  await logActivity({
+    user_id: session.user.email,
+    user_name: session.user.name,
+    user_image: session.user.image,
+    route_id: routeId,
+    action_type: "ATTEMPT",
+    content: "Attempted",
+  });
+}
+
+export async function savePersonalNote(routeId: string, content: string) {
+  const session = await auth();
+  if (!session?.user?.email) throw new Error("Unauthorized");
+
+  const existing = await db.select().from(personalNotes).where(
+    and(
+      eq(personalNotes.user_id, session.user.email),
+      eq(personalNotes.route_id, routeId)
+    )
+  );
+
+  if (existing.length > 0) {
+    await db.update(personalNotes)
+      .set({ content, updated_at: new Date() })
+      .where(eq(personalNotes.id, existing[0].id));
+  } else {
+    await db.insert(personalNotes).values({
+      user_id: session.user.email,
+      route_id: routeId,
+      content,
+    });
+  }
+  
+  revalidatePath(`/route/${routeId}`);
+}
+
+export async function getPersonalNote(routeId: string) {
+  const session = await auth();
+  if (!session?.user?.email) return null;
+
+  const note = await db.select().from(personalNotes).where(
+    and(
+      eq(personalNotes.user_id, session.user.email),
+      eq(personalNotes.route_id, routeId)
+    )
+  );
+
+  return note[0]?.content || "";
+}
+
 export async function getRouteActivity(routeId: string) {
   return await db.select().from(activityLogs).where(eq(activityLogs.route_id, routeId)).orderBy(desc(activityLogs.created_at));
 }
@@ -105,6 +161,7 @@ export async function getGlobalActivity() {
     created_at: activityLogs.created_at,
     route_grade: routes.grade,
     route_color: routes.color,
+    route_label: routes.difficulty_label,
     route_id: routes.id,
     wall_id: routes.wall_id,
   })
@@ -125,6 +182,7 @@ export async function getUserActivity(userId: string) {
     created_at: activityLogs.created_at,
     route_grade: routes.grade,
     route_color: routes.color,
+    route_label: routes.difficulty_label,
     route_id: routes.id,
     wall_id: routes.wall_id,
   })
@@ -164,8 +222,15 @@ export async function ingestRoutes() {
       const processedRouteIds = new Set<string>();
 
       for (const row of rows) {
-        // Row format: [ROUTE (Name/Desc), COLOR, GRADE, SETTER, SET DATE]
-        const [name, color, grade, setter, dateStr] = row;
+        // Row format seems to be: [LABEL, COLOR, GRADE, SETTER, SET DATE] based on logs
+        // Logs: [ 'Easy -', 'Green', 'VB', 'Abby', '10/28' ]
+        const [label, color, grade, setter, dateStr] = row;
+        const name = ""; // Name seems to be missing or is the label
+
+        if (count === 0 && rows.indexOf(row) === 0) {
+            console.log("DEBUG: First row data:", row);
+            console.log("DEBUG: Extracted label:", label);
+        }
 
         if (!grade || !color) continue;
 
@@ -191,6 +256,8 @@ export async function ingestRoutes() {
             setter_name: setter || existingRoute.setter_name,
             set_date: date.toISOString(),
             attributes: name ? [name] : existingRoute.attributes,
+            setter_notes: existingRoute.setter_notes, // Preserve notes
+            difficulty_label: label || existingRoute.difficulty_label,
           }).where(eq(routes.id, existingRoute.id));
           
           processedRouteIds.add(existingRoute.id);
@@ -204,6 +271,7 @@ export async function ingestRoutes() {
             set_date: date.toISOString(),
             status: "active",
             attributes: name ? [name] : [],
+            difficulty_label: label || null,
           }).returning({ id: routes.id });
           
           count++;
@@ -274,6 +342,7 @@ export type BrowserRoute = {
   setter_name: string;
   set_date: string;
   attributes: string[];
+  difficulty_label: string | null;
   avg_rating: number;
   comment_count: number;
   user_status: "SEND" | "FLASH" | null;
@@ -314,6 +383,7 @@ export async function getBrowserRoutes(): Promise<BrowserRoute[]> {
       ...route,
       set_date: route.set_date, // Ensure string
       attributes: route.attributes || [],
+      difficulty_label: route.difficulty_label,
       avg_rating: 0,
       comment_count: 0,
       user_status: null,

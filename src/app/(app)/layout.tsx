@@ -22,7 +22,7 @@ export default async function AppLayout({
   return (
     <div className="min-h-screen pb-24 md:pb-0 md:pt-20">
       {/* Floating Glass Navbar */}
-      <nav className="fixed bottom-4 left-4 right-4 md:top-4 md:bottom-auto z-50">
+      <nav className="fixed bottom-4 left-4 right-4 z-50">
         <div className="max-w-2xl mx-auto bg-white/80 backdrop-blur-xl border border-white/50 shadow-lg rounded-2xl px-6 py-3 flex items-center justify-between">
           <Link href="/gym" className="text-xl font-black bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent hidden md:block">
             Route Mill

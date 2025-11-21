@@ -1,7 +1,6 @@
 import { getUserActivity } from "@/app/actions";
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import Link from "next/link";
+import GradeDistribution from "@/components/GradeDistribution";
 
 export default async function PublicProfilePage({ params }: { params: Promise<{ userId: string }> }) {
   const { userId } = await params;
@@ -60,6 +59,8 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
         </div>
       </div>
 
+      <GradeDistribution activity={activity} />
+
       <h2 className="text-xl font-bold mb-4 text-gray-800">Activity History</h2>
       <div className="space-y-4">
         {activity.map((log) => (
@@ -70,7 +71,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
                 {log.action_type === "FLASH" && <span className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded font-bold">FLASHED</span>}
                 {log.action_type === "COMMENT" && <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-bold">COMMENTED</span>}
                 <Link href={`/route/${log.route_id}`} className="font-bold text-gray-900 hover:underline">
-                  {log.route_grade} - {log.route_color}
+                  {log.route_label ? `${log.route_label} (${log.route_grade})` : log.route_grade} - {log.route_color}
                 </Link>
               </div>
               {log.content && <p className="text-gray-600 text-sm">{log.content}</p>}

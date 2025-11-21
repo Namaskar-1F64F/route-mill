@@ -1,4 +1,4 @@
-import { getRoute, getRouteActivity } from "@/app/actions";
+import { getRoute, getRouteActivity, getPersonalNote } from "@/app/actions";
 import { WALLS } from "@/lib/constants/walls";
 import Link from "next/link";
 import { ArrowLeft, Star, Calendar, User } from "lucide-react";
@@ -15,6 +15,7 @@ export default async function RoutePage({ params }: { params: Promise<{ id: stri
 
   const wall = WALLS.find((w) => w.id === route.wall_id);
   const activity = await getRouteActivity(id);
+  const personalNote = await getPersonalNote(id);
   const session = await auth();
   
   const user = session?.user?.email ? {
@@ -48,7 +49,15 @@ export default async function RoutePage({ params }: { params: Promise<{ id: stri
                   <Badge className="text-lg px-3 py-1" color={route.color.toLowerCase()}>
                     {route.color}
                   </Badge>
-                  <h1 className="text-5xl font-black text-slate-900 tracking-tight">{route.grade}</h1>
+                  <h1 className="text-5xl font-black text-slate-900 tracking-tight">
+                    {route.difficulty_label ? (
+                      <>
+                        {route.difficulty_label} <span className="text-3xl text-slate-400 font-bold align-baseline">({route.grade})</span>
+                      </>
+                    ) : (
+                      route.grade
+                    )}
+                  </h1>
                 </div>
                 <p className="text-xl text-slate-500 font-medium">{wall?.name}</p>
               </div>
@@ -73,6 +82,13 @@ export default async function RoutePage({ params }: { params: Promise<{ id: stri
                 <span>{new Date(route.set_date).toLocaleDateString()}</span>
               </div>
             </div>
+
+            {route.setter_notes && (
+              <div className="mt-6 pt-6 border-t border-slate-100">
+                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Setter Notes</h3>
+                <p className="text-slate-700 italic">{route.setter_notes}</p>
+              </div>
+            )}
           </div>
         </Card>
 
@@ -93,6 +109,7 @@ export default async function RoutePage({ params }: { params: Promise<{ id: stri
               <RouteActivity 
                 routeId={id} 
                 initialActivity={activity} 
+                initialPersonalNote={personalNote || ""}
                 user={user}
               />
             </Card>

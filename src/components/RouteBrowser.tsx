@@ -122,7 +122,10 @@ export default function RouteBrowser({ routes }: { routes: BrowserRoute[] }) {
             <tbody className="divide-y divide-slate-50">
               {sortedRoutes.map((route) => (
                 <tr key={route.id} className="hover:bg-slate-50/50 transition-colors group">
-                  <td className="px-6 py-4 font-black text-slate-700 text-lg">{route.grade}</td>
+                  <td className="px-6 py-4 font-black text-slate-700 text-lg">
+                    {route.difficulty_label || route.grade}
+                    {route.difficulty_label && <span className="block text-xs font-normal text-slate-400">{route.grade}</span>}
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <span className="w-3 h-3 rounded-full shadow-sm ring-1 ring-slate-100" style={{ backgroundColor: route.color.toLowerCase() }}></span>

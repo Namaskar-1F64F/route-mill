@@ -40,12 +40,14 @@ export default async function AdminPage() {
             const grade = formData.get("grade") as string;
             const color = formData.get("color") as string;
             const setter_name = formData.get("setter_name") as string;
+              const difficulty_label = formData.get("difficulty_label") as string;
             
             await createRoute({
               wall_id,
               grade,
               color,
               setter_name,
+              difficulty_label,
               set_date: new Date().toISOString(),
               status: "active",
             });
@@ -63,6 +65,11 @@ export default async function AdminPage() {
               <select name="grade" className="w-full p-2 border rounded-md bg-gray-50">
                 {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-700">Label (Optional)</label>
+              <input name="difficulty_label" type="text" className="w-full p-2 border rounded-md bg-gray-50" placeholder="e.g. easy-+, mod" />
             </div>
 
             <div>

@@ -2,7 +2,7 @@ export const WALLS = [
   { id: "entrance-wall", name: "Entrance Wall", type: "Vertical" },
   { id: "fan-wall", name: "Fan Wall", type: "Overhang" },
   { id: "left-of-prow", name: "Left of Prow", type: "Overhang" },
-  { id: "prow", name: "Prow", type: "Overhang" },
+  { id: "prow", name: "Prow Wall", type: "Overhang" },
   { id: "right-of-prow", name: "Right of Prow", type: "Overhang" },
   { id: "transition-wall", name: "Transition Wall", type: "Vertical" },
   { id: "30-degree-wall", name: "30 Degree Wall", type: "Overhang" },

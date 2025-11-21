@@ -37,7 +37,7 @@ async function FeedList() {
                   {item.action_type === "RATING" && "rated"}
                 </span>
                 <Link href={`/route/${item.route_id}`} className="font-medium text-slate-900 hover:text-violet-600 transition-colors">
-                  Route
+                  {item.route_label || item.route_grade || "Route"}
                 </Link>
               </p>
               <span className="text-xs text-slate-400 whitespace-nowrap ml-2">

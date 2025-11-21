@@ -30,3 +30,16 @@ body {
     @apply hover:bg-white/80 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5;
   }
 }
+
+@theme {
+  --animate-shimmer: shimmer 2s infinite linear;
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(0%) skewX(-12deg);
+    }
+    100% {
+      transform: translateX(200%) skewX(-12deg);
+    }
+  }
+}

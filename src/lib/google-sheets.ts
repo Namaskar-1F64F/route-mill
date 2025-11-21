@@ -16,7 +16,7 @@ export async function getSheetData() {
 
   // 2. Fetch data for each tab
   for (const tab of tabs) {
-    const range = `${tab}!A2:E`; // Assuming Header is Row 1: ROUTE, COLOR, GRADE, SETTER, SET DATE
+    const range = `${tab}!A2:F`; // Assuming Header is Row 1: ROUTE, COLOR, GRADE, SETTER, SET DATE, LABEL
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range,
