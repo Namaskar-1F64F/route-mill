@@ -4,6 +4,8 @@ import { FeedItemSkeleton } from "@/components/skeletons";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Check, Zap, MessageSquare, Star } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
+import { RouteBadge } from "@/components/RouteBadge";
 
 async function FeedList() {
   const activity = await getGlobalActivity();
@@ -13,11 +15,11 @@ async function FeedList() {
       {activity.map((item) => (
         <Card key={item.id} className="p-5 flex gap-4 items-start">
           <Link href={`/profile/${item.user_id}`} className="flex-shrink-0">
-            <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border border-slate-100">
+            <div className="w-10 h-10 bg-slate-200 border-2 border-black transform -skew-x-6 flex items-center justify-center overflow-hidden">
               {item.user_image ? (
-                <img src={item.user_image} alt={item.user_name || "User"} className="w-full h-full object-cover" />
+                <img src={item.user_image} alt={item.user_name || "User"} className="w-full h-full object-cover transform skew-x-6 scale-110" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-slate-500 font-bold">
+                <div className="w-full h-full flex items-center justify-center text-slate-500 font-bold transform skew-x-6">
                   {item.user_name?.[0] || "?"}
                 </div>
               )}
@@ -36,8 +38,19 @@ async function FeedList() {
                   {item.action_type === "COMMENT" && "commented on"}
                   {item.action_type === "RATING" && "rated"}
                 </span>
-                <Link href={`/route/${item.route_id}`} className="font-medium text-slate-900 hover:text-violet-600 transition-colors">
-                  {item.route_label || item.route_grade || "Route"}
+                <Link href={`/route/${item.route_id}`} className="inline-block align-middle ml-1">
+                  <RouteBadge 
+                    route={{
+                      id: item.route_id!,
+                      grade: item.route_grade!,
+                      difficulty_label: item.route_label,
+                      color: item.route_color!,
+                      wall_id: item.wall_id!,
+                      setter_name: item.setter_name!,
+                      set_date: item.set_date!,
+                    }}
+                    className="scale-75 origin-left"
+                  />
                 </Link>
               </p>
               <span className="text-xs text-slate-400 whitespace-nowrap ml-2">
@@ -74,7 +87,7 @@ async function FeedList() {
 export default function FeedPage() {
   return (
     <div className="max-w-2xl mx-auto pb-24">
-      <h1 className="text-3xl font-black bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent mb-8">Activity Feed</h1>
+      <h1 className="text-5xl font-black text-black mb-8 uppercase tracking-tighter">Activity Feed</h1>
       <Suspense fallback={<div className="space-y-4"><FeedItemSkeleton /><FeedItemSkeleton /><FeedItemSkeleton /></div>}>
         <FeedList />
       </Suspense>
@@ -82,4 +95,4 @@ export default function FeedPage() {
   );
 }
 
-import { Badge } from "@/components/ui/Badge";
+

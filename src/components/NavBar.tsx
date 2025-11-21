@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Map, List, Activity, User, Settings } from "lucide-react";
+import { Map, List, Activity, User as UserIcon, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
-export default function NavBar() {
+import { User } from "next-auth";
+
+export default function NavBar({ user, isAdmin }: { user?: User | null, isAdmin?: boolean }) {
   const pathname = usePathname();
   const [hoveredPath, setHoveredPath] = useState<string | null>(null);
 
@@ -14,8 +16,8 @@ export default function NavBar() {
     { name: "Map", href: "/gym", icon: Map },
     { name: "Routes", href: "/routes", icon: List },
     { name: "Feed", href: "/feed", icon: Activity },
-    { name: "Profile", href: "/profile", icon: User },
-    { name: "Admin", href: "/admin", icon: Settings },
+    ...(user ? [{ name: "Profile", href: "/profile", icon: UserIcon }] : []),
+    ...(isAdmin ? [{ name: "Admin", href: "/admin", icon: Settings }] : []),
   ];
 
   // Determine active item (handle sub-routes if needed, e.g. /profile/123)

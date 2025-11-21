@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
 };
 
+import { Toaster } from "@/components/ui/Toaster";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -19,6 +21,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${outfit.className} bg-slate-50 text-slate-900 antialiased`}>
         {children}
+        <Toaster />
       </body>
     </html>
   );

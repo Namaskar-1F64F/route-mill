@@ -12,6 +12,7 @@ export const routes = pgTable("routes", {
   attributes: jsonb("attributes").$type<string[]>().default([]),
   setter_notes: text("setter_notes"),
   created_at: timestamp("created_at").defaultNow(),
+  removed_at: timestamp("removed_at"),
 });
 
 export const activityLogs = pgTable("activity_logs", {

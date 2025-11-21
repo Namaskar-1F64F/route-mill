@@ -53,8 +53,8 @@ export default function RouteBrowser({ routes }: { routes: BrowserRoute[] }) {
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <Card className="p-4 flex flex-col md:flex-row gap-4 items-center justify-between bg-white/60">
-        <div className="flex items-center gap-2 text-slate-500 font-medium">
+      <Card className="p-4 flex flex-col md:flex-row gap-4 items-center justify-between bg-white">
+        <div className="flex items-center gap-2 text-black font-bold uppercase tracking-widest text-xs font-mono">
           <Filter className="w-4 h-4" />
           <span>Filters</span>
         </div>
@@ -63,7 +63,7 @@ export default function RouteBrowser({ routes }: { routes: BrowserRoute[] }) {
           <select
             value={filterWall}
             onChange={(e) => setFilterWall(e.target.value)}
-            className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-violet-500 outline-none w-full md:w-48"
+            className="bg-white border-2 border-black px-3 py-2 text-xs font-mono uppercase tracking-widest focus:outline-none focus:bg-slate-50 w-full md:w-48"
           >
             <option value="all">All Walls</option>
             {WALLS.map((w) => (
@@ -74,7 +74,7 @@ export default function RouteBrowser({ routes }: { routes: BrowserRoute[] }) {
           <select
             value={filterGrade}
             onChange={(e) => setFilterGrade(e.target.value)}
-            className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-violet-500 outline-none w-full md:w-32"
+            className="bg-white border-2 border-black px-3 py-2 text-xs font-mono uppercase tracking-widest focus:outline-none focus:bg-slate-50 w-full md:w-32"
           >
             <option value="all">All Grades</option>
             {GRADES.map((g) => (
@@ -83,7 +83,7 @@ export default function RouteBrowser({ routes }: { routes: BrowserRoute[] }) {
           </select>
         </div>
         
-        <div className="text-sm text-slate-500 font-medium">
+        <div className="text-xs text-slate-500 font-mono uppercase tracking-widest">
           {sortedRoutes.length} routes found
         </div>
       </Card>
@@ -92,7 +92,7 @@ export default function RouteBrowser({ routes }: { routes: BrowserRoute[] }) {
       <Card className="overflow-hidden border-0 shadow-lg">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50/50 text-slate-500 font-semibold border-b border-slate-100">
+            <thead className="bg-slate-50 border-b-2 border-black text-black font-mono uppercase tracking-widest text-xs">
               <tr>
                 <th className="px-6 py-4 cursor-pointer hover:text-violet-600 transition-colors" onClick={() => handleSort("grade")}>
                   <div className="flex items-center gap-1">Grade <ArrowUpDown className="w-3 h-3" /></div>

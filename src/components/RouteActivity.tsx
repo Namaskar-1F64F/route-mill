@@ -19,6 +19,7 @@ type ActivityLog = {
 };
 
 type UserSession = {
+  id: string;
   email: string;
   name: string | null;
   image: string | null;
@@ -51,7 +52,7 @@ export default function RouteActivity({
 
     const newLog: ActivityLog = {
       id: Math.random().toString(), // Temporary ID
-      user_id: user.email,
+      user_id: user.id,
       user_name: user.name,
       user_image: user.image,
       route_id: routeId,
@@ -66,7 +67,7 @@ export default function RouteActivity({
       
       // Server Action
       await logActivity({
-        user_id: user.email,
+        user_id: user.id,
         user_name: user.name,
         user_image: user.image,
         route_id: routeId,

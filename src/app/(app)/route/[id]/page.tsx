@@ -18,7 +18,7 @@ export default async function RoutePage({ params }: { params: Promise<{ id: stri
   const session = await auth();
   
   const user = session?.user?.email ? {
-    id: session.user.email,
+    id: session.user.id || session.user.email, // Fallback to email if ID missing (shouldn't happen with new auth)
     email: session.user.email,
     name: session.user.name || null,
     image: session.user.image || null,

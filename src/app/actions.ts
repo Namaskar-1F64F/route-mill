@@ -164,6 +164,8 @@ export async function getGlobalActivity() {
     route_label: routes.difficulty_label,
     route_id: routes.id,
     wall_id: routes.wall_id,
+    setter_name: routes.setter_name,
+    set_date: routes.set_date,
   })
   .from(activityLogs)
   .leftJoin(routes, eq(activityLogs.route_id, routes.id))
@@ -185,6 +187,8 @@ export async function getUserActivity(userId: string) {
     route_label: routes.difficulty_label,
     route_id: routes.id,
     wall_id: routes.wall_id,
+    setter_name: routes.setter_name,
+    set_date: routes.set_date,
   })
   .from(activityLogs)
   .leftJoin(routes, eq(activityLogs.route_id, routes.id))
@@ -223,14 +227,8 @@ export async function ingestRoutes() {
 
       for (const row of rows) {
         // Row format seems to be: [LABEL, COLOR, GRADE, SETTER, SET DATE] based on logs
-        // Logs: [ 'Easy -', 'Green', 'VB', 'Abby', '10/28' ]
         const [label, color, grade, setter, dateStr] = row;
         const name = ""; // Name seems to be missing or is the label
-
-        if (count === 0 && rows.indexOf(row) === 0) {
-            console.log("DEBUG: First row data:", row);
-            console.log("DEBUG: Extracted label:", label);
-        }
 
         if (!grade || !color) continue;
 
@@ -242,33 +240,28 @@ export async function ingestRoutes() {
             const currentYear = new Date().getFullYear();
             date.setFullYear(currentYear);
         }
+        const dateIso = date.toISOString().split('T')[0]; // YYYY-MM-DD
 
-        // Check for existing route
+        // Check for existing route with EXACT match on key properties
         const existingRoute = activeRoutes.find(r => 
           r.grade === grade && 
           r.color === color && 
-          (name ? r.attributes?.includes(name) : true) // Weak matching on name if present
+          r.difficulty_label === (label || null) &&
+          r.set_date === dateIso // Strict date match
         );
 
         if (existingRoute) {
-          // Update existing route
-          await db.update(routes).set({
-            setter_name: setter || existingRoute.setter_name,
-            set_date: date.toISOString(),
-            attributes: name ? [name] : existingRoute.attributes,
-            setter_notes: existingRoute.setter_notes, // Preserve notes
-            difficulty_label: label || existingRoute.difficulty_label,
-          }).where(eq(routes.id, existingRoute.id));
-          
+          // Route exists and matches exactly - keep it active
+          // We can update mutable fields like setter name if needed, but for now just mark as processed
           processedRouteIds.add(existingRoute.id);
         } else {
-          // Create new route
+          // New route detected (or significant change to existing one)
           const newRoute = await db.insert(routes).values({
             wall_id: wall.id,
             grade: grade,
             color: color,
             setter_name: setter || "Unknown",
-            set_date: date.toISOString(),
+            set_date: dateIso,
             status: "active",
             attributes: name ? [name] : [],
             difficulty_label: label || null,
@@ -282,7 +275,12 @@ export async function ingestRoutes() {
       // Archive routes that were not in the sheet
       for (const route of activeRoutes) {
         if (!processedRouteIds.has(route.id)) {
-          await db.update(routes).set({ status: "archived" }).where(eq(routes.id, route.id));
+          await db.update(routes)
+            .set({ 
+              status: "archived",
+              removed_at: new Date()
+            })
+            .where(eq(routes.id, route.id));
           archivedCount++;
         }
       }
