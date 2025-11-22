@@ -2,13 +2,24 @@
 
 import { useState } from "react";
 import { previewSync, confirmSync, SyncPreview } from "@/app/actions";
-import { RefreshCw, Check, AlertTriangle, ArrowRight, Save, X } from "lucide-react";
+import { RefreshCw, Check, AlertTriangle, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
+
+type SyncRoute = {
+  id?: string;
+  wall_id: string;
+  grade: string;
+  color: string;
+  setter_name: string;
+  difficulty_label?: string | null;
+  style?: string | null;
+  hold_type?: string | null;
+};
 
 export default function RouteSyncView() {
   const [status, setStatus] = useState<"idle" | "loading" | "preview" | "syncing" | "success" | "error">("idle");
   const [previewData, setPreviewData] = useState<SyncPreview | null>(null);
-  const [syncResult, setSyncResult] = useState<any>(null);
+  const [syncResult, setSyncResult] = useState<{ count: number; archivedCount: number; updatedCount: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -19,6 +30,7 @@ export default function RouteSyncView() {
       const data = await previewSync();
       setPreviewData(data);
       setStatus("preview");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Failed to fetch updates");
@@ -33,6 +45,7 @@ export default function RouteSyncView() {
       setSyncResult(result);
       setStatus("success");
       router.refresh();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Failed to sync");
@@ -55,7 +68,7 @@ export default function RouteSyncView() {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Sync Routes</h2>
           <p className="text-gray-500 mb-8">
-            Check for updates from the Google Sheet. You'll be able to review changes before applying them.
+            Check for updates from the Google Sheet. You&apos;ll be able to review changes before applying them.
           </p>
           <button
             onClick={handleCheckForUpdates}
@@ -128,12 +141,11 @@ export default function RouteSyncView() {
 
   if (status === "preview" && previewData) {
     const { newRoutes, existingRoutes, missingRoutes } = previewData;
-    const hasChanges = newRoutes.length > 0 || missingRoutes.length > 0 || existingRoutes.some((r: any) => r.style /* check if actually changed? logic in previewSync just returns all existing */);
-    
+
     // For existing routes, we might want to filter or show only if we had a way to know they changed. 
     // The current previewSync logic returns ALL existing routes.
     // Let's just show counts for existing, and list details for New and Missing.
-    
+
     return (
       <div className="space-y-8">
         <div className="flex justify-between items-center">
@@ -171,7 +183,7 @@ export default function RouteSyncView() {
                 <div className="p-8 text-center text-gray-400 italic">No new routes found</div>
               ) : (
                 <ul className="divide-y divide-gray-100">
-                  {newRoutes.map((route: any, i: number) => (
+                  {newRoutes.map((route: SyncRoute, i: number) => (
                     <li key={i} className="p-3 hover:bg-gray-50">
                       <div className="flex justify-between items-start">
                         <div>
@@ -207,7 +219,7 @@ export default function RouteSyncView() {
                 <div className="p-8 text-center text-gray-400 italic">No routes to archive</div>
               ) : (
                 <ul className="divide-y divide-gray-100">
-                  {missingRoutes.map((route: any) => (
+                  {missingRoutes.map((route: SyncRoute) => (
                     <li key={route.id} className="p-3 hover:bg-gray-50 opacity-75">
                       <div className="flex justify-between items-start">
                         <div>
@@ -235,27 +247,27 @@ export default function RouteSyncView() {
               </span>
             </div>
             <div className="max-h-96 overflow-y-auto p-0">
-               <div className="p-4 text-sm text-gray-500">
-                 {existingRoutes.length} routes matched. Mutable fields (style, hold type, setter) will be updated if changed.
-               </div>
-               {/* We could list them but it might be too many. Just showing a sample or summary is better. */}
-               <ul className="divide-y divide-gray-100">
-                  {existingRoutes.slice(0, 10).map((route: any, i: number) => (
-                    <li key={i} className="p-3 hover:bg-gray-50">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="font-medium text-gray-700">{route.grade} - {route.color}</div>
-                          <div className="text-xs text-gray-500">{route.wall_id}</div>
-                        </div>
+              <div className="p-4 text-sm text-gray-500">
+                {existingRoutes.length} routes matched. Mutable fields (style, hold type, setter) will be updated if changed.
+              </div>
+              {/* We could list them but it might be too many. Just showing a sample or summary is better. */}
+              <ul className="divide-y divide-gray-100">
+                {existingRoutes.slice(0, 10).map((route: SyncRoute, i: number) => (
+                  <li key={i} className="p-3 hover:bg-gray-50">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-medium text-gray-700">{route.grade} - {route.color}</div>
+                        <div className="text-xs text-gray-500">{route.wall_id}</div>
                       </div>
-                    </li>
-                  ))}
-                  {existingRoutes.length > 10 && (
-                    <li className="p-3 text-center text-xs text-gray-500 italic">
-                      ...and {existingRoutes.length - 10} more
-                    </li>
-                  )}
-                </ul>
+                    </div>
+                  </li>
+                ))}
+                {existingRoutes.length > 10 && (
+                  <li className="p-3 text-center text-xs text-gray-500 italic">
+                    ...and {existingRoutes.length - 10} more
+                  </li>
+                )}
+              </ul>
             </div>
           </div>
         </div>

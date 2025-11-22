@@ -42,27 +42,27 @@ export default function RouteBrowser({ routes }: { routes: BrowserRoute[] }) {
       if (filterStyle !== "all" && route.style !== filterStyle) return false;
       if (filterHold !== "all" && route.hold_type !== filterHold) return false;
       if (filterSetter !== "all" && route.setter_name !== filterSetter) return false;
-      
+
       if (filterStatus === "sent" && route.user_status !== "SEND" && route.user_status !== "FLASH") return false;
       if (filterStatus === "flashed" && route.user_status !== "FLASH") return false;
       if (filterStatus === "unattempted" && route.user_status) return false;
-      
+
       return true;
     });
   }, [routes, filterWall, filterGrade, filterStyle, filterHold, filterSetter, filterStatus]);
 
   const sortedRoutes = useMemo(() => {
     return [...filteredRoutes].sort((a, b) => {
-      let valA: any = a[sortField];
-      let valB: any = b[sortField];
+      let valA: string | number | null | undefined = a[sortField];
+      let valB: string | number | null | undefined = b[sortField];
 
       if (sortField === "grade") {
-        const idxA = GRADES.indexOf(a.grade as any);
-        const idxB = GRADES.indexOf(b.grade as any);
+        const idxA = (GRADES as readonly string[]).indexOf(a.grade);
+        const idxB = (GRADES as readonly string[]).indexOf(b.grade);
         valA = idxA === -1 ? 999 : idxA;
         valB = idxB === -1 ? 999 : idxB;
       }
-      
+
       // Handle nulls/undefined
       if (valA === null || valA === undefined) valA = "";
       if (valB === null || valB === undefined) valB = "";
@@ -86,7 +86,7 @@ export default function RouteBrowser({ routes }: { routes: BrowserRoute[] }) {
             {sortedRoutes.length} routes found
           </div>
         </div>
-        
+
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <select
             value={filterWall}
@@ -231,12 +231,12 @@ export default function RouteBrowser({ routes }: { routes: BrowserRoute[] }) {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                     <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-[10px] font-bold text-slate-600">
-                           {route.setter_name.charAt(0)}
-                        </div>
-                        <span className="text-slate-600">{route.setter_name}</span>
-                     </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                        {route.setter_name.charAt(0)}
+                      </div>
+                      <span className="text-slate-600">{route.setter_name}</span>
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-slate-400 whitespace-nowrap text-xs">
                     {new Date(route.set_date).toLocaleDateString()}

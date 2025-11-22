@@ -30,6 +30,7 @@ export default function FeedList({ activity }: { activity: ActivityItem[] }) {
           <Link href={`/profile/${item.user_id}`} className="flex-shrink-0">
             <div className="w-10 h-10 bg-slate-200 border-2 border-black transform -skew-x-6 flex items-center justify-center overflow-hidden">
               {item.user_image ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img src={item.user_image} alt={item.user_name || "User"} className="w-full h-full object-cover transform skew-x-6 scale-110" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-slate-500 font-bold transform skew-x-6">
@@ -38,7 +39,7 @@ export default function FeedList({ activity }: { activity: ActivityItem[] }) {
               )}
             </div>
           </Link>
-          
+
           <div className="flex-1 min-w-0">
             <div className="flex justify-between items-start">
               <div className="flex flex-col">
@@ -51,11 +52,11 @@ export default function FeedList({ activity }: { activity: ActivityItem[] }) {
                   {item.created_at ? new Date(item.created_at).toLocaleDateString() : ""}
                 </p>
               </div>
-              
+
               {item.route_id && (
                 <div className="flex flex-col items-end gap-1">
                   <Link href={`/route/${item.route_id}`}>
-                    <RouteBadge 
+                    <RouteBadge
                       route={{
                         id: item.route_id,
                         grade: item.route_grade || "?",
@@ -68,7 +69,7 @@ export default function FeedList({ activity }: { activity: ActivityItem[] }) {
                       className="scale-90 origin-right"
                     />
                   </Link>
-                  <Link 
+                  <Link
                     href={`/route/${item.route_id}`}
                     className="text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-black transition-colors flex items-center gap-1"
                   >
@@ -110,7 +111,7 @@ export default function FeedList({ activity }: { activity: ActivityItem[] }) {
                       {item.content} <Star className="w-4 h-4 fill-current" />
                     </div>
                   ) : (
-                    <p>"{item.content}"</p>
+                    <div className="text-slate-500 italic">&quot;{item.content}&quot;</div>
                   )}
                 </div>
               )}

@@ -4,7 +4,6 @@ import { useOptimistic, useRef, useState, useTransition } from "react";
 import { logActivity, savePersonalNote, logAttempt, updateActivity, deleteActivity } from "@/app/actions";
 import { Send, Zap, MessageSquare, Eye, EyeOff, StickyNote, CheckCircle2, Pencil, Trash2, X, Check } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 
 type ActivityLog = {
   id: string;
@@ -25,13 +24,13 @@ type UserSession = {
   image: string | null;
 };
 
-export default function RouteActivity({ 
-  routeId, 
-  initialActivity, 
+export default function RouteActivity({
+  routeId,
+  initialActivity,
   initialPersonalNote,
-  user 
-}: { 
-  routeId: string; 
+  user
+}: {
+  routeId: string;
   initialActivity: ActivityLog[];
   initialPersonalNote: string;
   user: UserSession | null;
@@ -77,7 +76,7 @@ export default function RouteActivity({
 
     startTransition(async () => {
       addOptimisticActivity({ type: "ADD", log: newLog });
-      
+
       // Server Action
       await logActivity({
         user_id: user.id,
@@ -109,7 +108,7 @@ export default function RouteActivity({
 
   async function handleUpdate(id: string) {
     if (!editContent.trim()) return;
-    
+
     const log = optimisticActivity.find(a => a.id === id);
     if (!log) return;
 
@@ -148,7 +147,7 @@ export default function RouteActivity({
     <div className="space-y-12">
       {/* Control Panel */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <button 
+        <button
           onClick={() => handleAction("SEND", "")}
           disabled={!user || isPending}
           className="h-12 bg-white border-2 border-black hover:bg-black hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-sm"
@@ -156,7 +155,7 @@ export default function RouteActivity({
           <Send className="w-4 h-4" /> Log Send
         </button>
 
-        <button 
+        <button
           onClick={() => handleAction("FLASH", "")}
           disabled={!user || isPending}
           className="h-12 bg-white border-2 border-black hover:bg-yellow-400 hover:border-yellow-400 hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-sm"
@@ -164,7 +163,7 @@ export default function RouteActivity({
           <Zap className="w-4 h-4" /> Log Flash
         </button>
 
-        <button 
+        <button
           onClick={handleAttempt}
           disabled={!user || isPending}
           className="h-12 bg-white border-2 border-black hover:bg-slate-200 hover:border-slate-200 hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-sm"
@@ -215,25 +214,25 @@ export default function RouteActivity({
 
         {/* Input Area */}
         <div className="mb-10">
-          <form 
+          <form
             ref={formRef}
             action={async (formData) => {
               const content = formData.get("content") as string;
               if (!content) return;
               await handleAction("COMMENT", content, { is_beta: isBeta });
-            }} 
+            }}
           >
             <div className="flex gap-4">
-              <input 
-                name="content" 
-                type="text" 
-                placeholder={user ? "Write a comment..." : "Sign in to comment"} 
+              <input
+                name="content"
+                type="text"
+                placeholder={user ? "Write a comment..." : "Sign in to comment"}
                 className="flex-1 border-b-2 border-slate-200 bg-transparent py-2 text-sm focus:outline-none focus:border-black transition-colors disabled:opacity-50"
                 required
                 disabled={!user}
               />
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={!user || isPending}
                 className="font-bold text-xs uppercase tracking-widest hover:text-violet-600 transition-colors disabled:opacity-50"
               >
@@ -242,9 +241,9 @@ export default function RouteActivity({
             </div>
             {user && (
               <label className="flex items-center gap-2 text-xs text-slate-500 cursor-pointer mt-2 w-fit hover:text-black transition-colors">
-                <input 
-                  type="checkbox" 
-                  checked={isBeta} 
+                <input
+                  type="checkbox"
+                  checked={isBeta}
                   onChange={(e) => setIsBeta(e.target.checked)}
                   className="rounded border-slate-300 text-black focus:ring-0"
                 />
@@ -260,7 +259,7 @@ export default function RouteActivity({
             const isHidden = log.metadata?.is_beta && !revealedBeta.has(log.id);
             const isOwner = user && log.user_id === user.id;
             const isEditing = editingId === log.id;
-            
+
             return (
               <div key={log.id} className="relative pl-6 animate-in fade-in slide-in-from-left-2 duration-300">
                 {/* Timeline Dot */}
@@ -280,7 +279,7 @@ export default function RouteActivity({
                   </div>
                   {isOwner && !isEditing && (
                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button 
+                      <button
                         onClick={() => {
                           setEditingId(log.id);
                           setEditContent(log.content || "");
@@ -289,7 +288,7 @@ export default function RouteActivity({
                       >
                         <Pencil className="w-3 h-3" />
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDelete(log.id)}
                         className="text-slate-400 hover:text-red-600"
                       >
@@ -298,7 +297,7 @@ export default function RouteActivity({
                     </div>
                   )}
                 </div>
-                
+
                 <div className="text-sm text-slate-600 leading-relaxed group min-h-[24px]">
                   {isEditing ? (
                     <div className="flex gap-2 items-start">
@@ -319,7 +318,7 @@ export default function RouteActivity({
                   ) : (
                     <>
                       {isHidden ? (
-                        <button 
+                        <button
                           onClick={() => toggleBeta(log.id)}
                           className="flex items-center gap-2 text-slate-400 hover:text-black transition-colors italic"
                         >
@@ -330,7 +329,7 @@ export default function RouteActivity({
                         <div className="relative group">
                           <p>{log.content}</p>
                           {log.metadata?.is_beta && (
-                            <button 
+                            <button
                               onClick={() => toggleBeta(log.id)}
                               className="absolute -right-6 top-0 opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 hover:text-black"
                               title="Hide beta"
@@ -348,7 +347,7 @@ export default function RouteActivity({
           })}
           {comments.length === 0 && (
             <div className="pl-6">
-               <p className="text-slate-400 text-sm italic">No activity logged yet.</p>
+              <p className="text-slate-400 text-sm italic">No activity logged yet.</p>
             </div>
           )}
         </div>

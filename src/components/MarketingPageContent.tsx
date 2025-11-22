@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Mountain, Activity, TrendingUp, BarChart3, Settings2, Check, Zap, Star, MessageSquare, Megaphone } from "lucide-react";
+import { Activity, TrendingUp, BarChart3, Settings2, Star, MessageSquare, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { LoginButton } from "@/components/LoginButton";
 import { Card } from "@/components/ui/Card";
 import GradeChart from "@/components/GradeChart";
 import StyleBreakdown from "@/components/StyleBreakdown";
-import VisitHistory from "@/components/VisitHistory";
 import { SettingsProvider, useSettings } from "@/context/SettingsContext";
 import { useState } from "react";
 import { RouteBadge } from "@/components/RouteBadge";
@@ -26,6 +25,7 @@ type Route = {
   set_date: string;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ActivityItem = any;
 
 interface MarketingPageContentProps {
@@ -77,7 +77,7 @@ function MarketingContent({
           <div className="flex-1 text-center lg:text-left z-10 pt-10 lg:pt-0">
             <div className="inline-block mb-6 px-4 py-1 border-2 border-black bg-rockmill transform -skew-x-12 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               <span className="text-xs font-bold font-mono uppercase tracking-[0.2em] text-white transform skew-x-12 block">
-                // Live Data
+                {"// Live Data"}
               </span>
             </div>
             <h1 className="text-3xl md:text-8xl font-black tracking-tighter mb-8 text-balance">
@@ -116,7 +116,8 @@ function MarketingContent({
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-black text-white flex items-center justify-center font-bold rounded-full overflow-hidden">
                       {recentSend.user_image ? (
-                        <img src={recentSend.user_image} className="w-full h-full object-cover" />
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={recentSend.user_image} alt="User" className="w-full h-full object-cover" />
                       ) : (
                         recentSend.user_name?.[0] || "?"
                       )}
@@ -181,7 +182,7 @@ function MarketingContent({
               <div key={i} className="inline-flex items-center mx-8 gap-3 opacity-80 hover:opacity-100 transition-opacity cursor-default">
                 <span className="text-rockmill font-mono text-sm">[{route.grade}]</span>
                 <span className="font-black uppercase tracking-tight">{route.route_name}</span>
-                <span className="text-zinc-500 text-xs font-mono uppercase">// Set by {route.setter}</span>
+                <span className="text-zinc-500 text-xs font-mono uppercase">{"// Set by "}{route.setter}</span>
               </div>
             ))}
           </div>
@@ -228,7 +229,7 @@ function MarketingContent({
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-4">Community Pulse</h2>
               <p className="text-slate-500 font-mono uppercase tracking-widest">
-                // Real-time activity from the gym
+                {"// Real-time activity from the gym"}
               </p>
             </div>
 

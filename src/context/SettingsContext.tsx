@@ -19,10 +19,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   // Load from local storage on mount
   useEffect(() => {
     const saved = localStorage.getItem("route-mill-grade-display");
-    if (saved === "v-scale" || saved === "difficulty") {
+    if ((saved === "v-scale" || saved === "difficulty") && saved !== gradeDisplay) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setGradeDisplay(saved);
     }
-  }, []);
+  }, [gradeDisplay]);
 
   // Save to local storage on change
   useEffect(() => {

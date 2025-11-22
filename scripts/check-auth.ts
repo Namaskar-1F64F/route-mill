@@ -34,9 +34,10 @@ async function checkServiceAccount() {
       const meta = await sheets.spreadsheets.get({ spreadsheetId });
       console.log("SUCCESS: Spreadsheet is accessible.");
       console.log("Title:", meta.data.properties?.title);
-    } catch (err: any) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
       console.error("FAILURE: Could not access spreadsheet.");
-      console.error("Error Message:", err.message);
+      console.error("Error Message:", error.message);
       console.log("\nACTION REQUIRED: Share the spreadsheet with the email above.");
     }
 

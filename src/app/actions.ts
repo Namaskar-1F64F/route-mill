@@ -299,6 +299,7 @@ export async function ingestRoutes() {
     revalidatePath("/sets");
     revalidatePath("/sync");
     return { success: true, count, archivedCount };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Ingestion failed:", error);
 
@@ -342,6 +343,7 @@ export async function rateRoute(routeId: string, rating: number) {
   revalidatePath("/routes");
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function updateActivity(activityId: string, content: string, metadata?: any) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
@@ -494,8 +496,11 @@ export async function getBrowserRoutes(): Promise<BrowserRoute[]> {
 }
 
 export type SyncPreview = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   newRoutes: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   existingRoutes: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   missingRoutes: any[];
 };
 
@@ -508,7 +513,9 @@ export async function previewSync(): Promise<SyncPreview> {
   const rows = await getSheetData();
   const activeRoutes = await db.select().from(routes).where(eq(routes.status, "active"));
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const newRoutes: any[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const existingRoutes: any[] = [];
   const processedRouteIds = new Set<string>();
 

@@ -1,21 +1,39 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Star, Calendar, User, Activity, Hash, MapPin, Info, GripHorizontal, Zap } from "lucide-react";
+import { ArrowLeft, Star, Activity, Hash, Info, GripHorizontal, Zap, User } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import RouteActivity from "@/components/RouteActivity";
 import StarRating from "@/components/StarRating";
 import GradeVoting from "@/components/GradeVoting";
-import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { BrowserRoute } from "@/app/actions";
+
+import { InferSelectModel } from "drizzle-orm";
+import { routes, activityLogs } from "@/lib/db/schema";
+
+type Route = InferSelectModel<typeof routes>;
+type Activity = InferSelectModel<typeof activityLogs>;
+
+type Wall = {
+  id: string;
+  name: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any; // Allow other properties from the constant
+};
+
+type User = {
+  id: string;
+  email: string;
+  name: string | null;
+  image: string | null;
+} | null;
 
 type RouteDetailsViewProps = {
-  route: any; // Using any for now to avoid complex type imports, ideally should be Route type
-  wall: any;
-  activity: any[];
+  route: Route;
+  wall: Wall | undefined;
+  activity: Activity[];
   personalNote: string;
-  user: any;
+  user: User;
   avgRating: string | null;
   ratingsCount: number;
   myRating: number;
@@ -175,7 +193,7 @@ export default function RouteDetailsView({
                       <Hash className="w-3 h-3" /> Setter Notes
                     </h3>
                     <p className="font-mono text-sm leading-relaxed relative z-10">
-                      "{route.setter_notes}"
+                      &quot;{route.setter_notes}&quot;
                     </p>
                   </div>
                 )}
@@ -186,7 +204,7 @@ export default function RouteDetailsView({
                       <Info className="w-3 h-3" /> Intended Beta
                     </h3>
                     <p className="font-mono text-sm leading-relaxed relative z-10 text-yellow-400/80 italic">
-                      "{route.setter_beta}"
+                      &quot;{route.setter_beta}&quot;
                     </p>
                   </div>
                 )}

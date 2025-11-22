@@ -1,6 +1,4 @@
 import { getUserActivity } from "@/app/actions";
-import Link from "next/link";
-import GradeDistribution from "@/components/GradeDistribution";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import ProfileStats from "@/components/ProfileStats";
@@ -39,16 +37,11 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
     }
   }
 
-  const stats = {
-    sends: activity.filter(a => a.action_type === "SEND").length,
-    flashes: activity.filter(a => a.action_type === "FLASH").length,
-    comments: activity.filter(a => a.action_type === "COMMENT").length,
-  };
-
   return (
     <div className="p-6 max-w-2xl mx-auto">
       <div className="flex items-center gap-6 mb-8">
         {user.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img src={user.image} alt={user.name} className="w-24 h-24 rounded-full border-4 border-white shadow-md" />
         ) : (
           <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-3xl shadow-md">

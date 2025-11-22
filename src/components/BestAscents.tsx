@@ -14,8 +14,8 @@ export default function BestAscents({ activity }: { activity: ActivityLog[] }) {
 
     // Sort by grade index
     const sorted = relevant.sort((a, b) => {
-      const idxA = GRADES.indexOf(a.route_grade as any);
-      const idxB = GRADES.indexOf(b.route_grade as any);
+      const idxA = (GRADES as readonly string[]).indexOf(a.route_grade as string);
+      const idxB = (GRADES as readonly string[]).indexOf(b.route_grade as string);
       return idxB - idxA; // Descending
     });
 

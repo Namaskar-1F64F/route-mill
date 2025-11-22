@@ -2,14 +2,13 @@ import { getBrowserRoutes } from "@/app/actions";
 import { WALLS } from "@/lib/constants/walls";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Star, MessageSquare, Hash, Calendar, User } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ArrowLeft } from "lucide-react";
 import WallRouteList from "@/components/WallRouteList";
 
 export default async function WallPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const wall = WALLS.find((w) => w.id === id);
-  
+
   if (!wall) return notFound();
 
   const allRoutes = await getBrowserRoutes();
@@ -25,13 +24,13 @@ export default async function WallPage({ params }: { params: Promise<{ id: strin
           </div>
           <span>Return to Map</span>
         </Link>
-        
+
         <div className="flex items-baseline gap-4">
           <h1 className="text-5xl md:text-7xl font-black text-black tracking-tighter uppercase transform -skew-x-6">
             {wall.name}
           </h1>
           <span className="text-sm font-mono text-slate-400 uppercase tracking-widest hidden md:inline-block">
-            // {wall.type} Set
+            {"// "}{wall.type} Set
           </span>
         </div>
       </div>

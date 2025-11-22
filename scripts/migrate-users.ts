@@ -2,7 +2,7 @@
 import "dotenv/config";
 import { db } from "@/lib/db";
 import { activityLogs, personalNotes, users } from "@/lib/db/schema";
-import { eq, or } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 // Migration map: Target Email -> List of Old IDs (Email or UUID) to merge FROM
 const MIGRATION_MAP: Record<string, string[]> = {

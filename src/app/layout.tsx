@@ -5,9 +5,25 @@ import "./globals.css";
 const outfit = Outfit({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Rock Mill Magnesium",
-  description: "Premium Climbing Route Management",
+  title: {
+    default: "Rock Mill Magnesium",
+    template: "%s | Rock Mill Magnesium",
+  },
+  description: "Climbing community site for Rock Mill. Track your progress and share your climbs.",
   manifest: "/manifest.json",
+  openGraph: {
+    title: "Rock Mill Magnesium",
+    description: "Climbing community site for Rock Mill. Track your progress and share your climbs.",
+    url: "https://rockmill-magnesium.vercel.app",
+    siteName: "Rock Mill Magnesium",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Rock Mill Magnesium",
+    description: "Climbing community site for Rock Mill. Track your progress and share your climbs.",
+  },
 };
 
 import { Toaster } from "@/components/ui/Toaster";

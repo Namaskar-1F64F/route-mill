@@ -1,13 +1,6 @@
 import { getRoute, getRouteActivity, getPersonalNote } from "@/app/actions";
 import { WALLS } from "@/lib/constants/walls";
-import Link from "next/link";
-import { ArrowLeft, Star, Calendar, User, Activity, Hash, MapPin, Info, GripHorizontal, Zap } from "lucide-react";
-import { Badge } from "@/components/ui/Badge";
 import { auth } from "@/lib/auth";
-import RouteActivity from "@/components/RouteActivity";
-import StarRating from "@/components/StarRating";
-import GradeVoting from "@/components/GradeVoting";
-import { cn } from "@/lib/utils";
 import RouteDetailsView from "@/components/RouteDetailsView";
 
 export default async function RouteDetails({ id }: { id: string }) {
@@ -18,7 +11,7 @@ export default async function RouteDetails({ id }: { id: string }) {
   const activity = await getRouteActivity(id);
   const personalNote = await getPersonalNote(id);
   const session = await auth();
-  
+
   const user = session?.user?.email ? {
     id: session.user.id || session.user.email,
     email: session.user.email,
@@ -37,7 +30,7 @@ export default async function RouteDetails({ id }: { id: string }) {
   const myVote = myVoteLog ? parseInt(myVoteLog.content || "0") : null;
 
   return (
-    <RouteDetailsView 
+    <RouteDetailsView
       route={route}
       wall={wall}
       activity={activity}
