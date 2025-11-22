@@ -12,8 +12,18 @@ type ActivityLog = {
   route_label: string | null;
 };
 
-export default function GradeChart({ activity }: { activity: ActivityLog[] }) {
-  const [mode, setMode] = useState<"V-SCALE" | "DIFFICULTY">("V-SCALE");
+export default function GradeChart({ 
+  activity, 
+  externalMode, 
+  hideControls = false 
+}: { 
+  activity: ActivityLog[]; 
+  externalMode?: "V-SCALE" | "DIFFICULTY"; 
+  hideControls?: boolean; 
+}) {
+  const [localMode, setLocalMode] = useState<"V-SCALE" | "DIFFICULTY">("V-SCALE");
+  const mode = externalMode || localMode;
+  const setMode = setLocalMode; // We only set local mode, external must be controlled by parent
 
   // Process Data
   const data = mode === "V-SCALE" 
@@ -50,26 +60,28 @@ export default function GradeChart({ activity }: { activity: ActivityLog[] }) {
           <BarChart3 className="w-4 h-4" /> Grade Distribution
         </h3>
         
-        <div className="flex bg-slate-100 p-1 rounded-lg">
-          <button 
-            onClick={() => setMode("V-SCALE")}
-            className={cn(
-              "px-3 py-1 text-xs font-bold rounded-md transition-all",
-              mode === "V-SCALE" ? "bg-white shadow text-black" : "text-slate-500 hover:text-black"
-            )}
-          >
-            V-Scale
-          </button>
-          <button 
-            onClick={() => setMode("DIFFICULTY")}
-            className={cn(
-              "px-3 py-1 text-xs font-bold rounded-md transition-all",
-              mode === "DIFFICULTY" ? "bg-white shadow text-black" : "text-slate-500 hover:text-black"
-            )}
-          >
-            Difficulty
-          </button>
-        </div>
+        {!hideControls && (
+          <div className="flex bg-slate-100 p-1 rounded-lg">
+            <button 
+              onClick={() => setMode("V-SCALE")}
+              className={cn(
+                "px-3 py-1 text-xs font-bold rounded-md transition-all",
+                mode === "V-SCALE" ? "bg-white shadow text-black" : "text-slate-500 hover:text-black"
+              )}
+            >
+              V-Scale
+            </button>
+            <button 
+              onClick={() => setMode("DIFFICULTY")}
+              className={cn(
+                "px-3 py-1 text-xs font-bold rounded-md transition-all",
+                mode === "DIFFICULTY" ? "bg-white shadow text-black" : "text-slate-500 hover:text-black"
+              )}
+            >
+              Difficulty
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="space-y-3">

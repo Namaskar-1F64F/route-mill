@@ -13,7 +13,7 @@ export default function NavBar({ user, isAdmin }: { user?: User | null, isAdmin?
   const [hoveredPath, setHoveredPath] = useState<string | null>(null);
 
   const navItems = [
-    { name: "Map", href: "/gym", icon: Map },
+    { name: "Sets", href: "/sets", icon: Map },
     { name: "Routes", href: "/routes", icon: List },
     { name: "Feed", href: "/feed", icon: Activity },
     ...(user ? [{ name: "Profile", href: `/profile/${user.id}`, icon: UserIcon }] : []),

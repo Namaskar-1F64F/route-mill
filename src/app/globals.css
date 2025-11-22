@@ -29,9 +29,14 @@ body {
   .glass-hover {
     @apply hover:bg-white/80 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5;
   }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
 
 @theme {
+  --color-rockmill: #E1261D;
   --animate-shimmer: shimmer 2s infinite linear;
 
   @keyframes shimmer {

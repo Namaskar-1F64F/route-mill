@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth"
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth;
-  const isOnDashboard = req.nextUrl.pathname.startsWith('/gym') ||
+  const isOnDashboard = req.nextUrl.pathname.startsWith('/sets') ||
     req.nextUrl.pathname.startsWith('/routes') ||
     req.nextUrl.pathname.startsWith('/feed') ||
     req.nextUrl.pathname.startsWith('/profile') ||

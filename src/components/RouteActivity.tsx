@@ -149,7 +149,7 @@ export default function RouteActivity({
       {/* Control Panel */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <button 
-          onClick={() => handleAction("SEND", "Sent it!")}
+          onClick={() => handleAction("SEND", "")}
           disabled={!user || isPending}
           className="h-12 bg-white border-2 border-black hover:bg-black hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-sm"
         >
@@ -157,7 +157,7 @@ export default function RouteActivity({
         </button>
 
         <button 
-          onClick={() => handleAction("FLASH", "Flashed it!")}
+          onClick={() => handleAction("FLASH", "")}
           disabled={!user || isPending}
           className="h-12 bg-white border-2 border-black hover:bg-yellow-400 hover:border-yellow-400 hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-sm"
         >

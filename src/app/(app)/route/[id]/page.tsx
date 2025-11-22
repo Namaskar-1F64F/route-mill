@@ -45,7 +45,7 @@ export default async function RoutePage({ params }: { params: Promise<{ id: stri
         
         {/* Navigation Command */}
         <Link 
-          href={`/gym/${route.wall_id}`} 
+          href={`/sets/${route.wall_id}`} 
           className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-slate-400 hover:text-black transition-colors mb-8 group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> 

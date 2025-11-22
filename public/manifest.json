@@ -1,8 +1,8 @@
 {
-  "name": "Route Mill",
-  "short_name": "Route Mill",
+  "name": "Magnesium",
+  "short_name": "Magnesium",
   "description": "The ultimate companion for your climbing gym.",
-  "start_url": "/gym",
+  "start_url": "/sets",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2563eb",

@@ -7,7 +7,7 @@ export function LoginButton() {
   return (
     <Button 
       variant="secondary" 
-      onClick={() => signIn("google", { callbackUrl: "/gym" })}
+      onClick={() => signIn("google", { callbackUrl: "/sets" })}
     >
       Sign In
     </Button>

@@ -1,4 +1,4 @@
-# Design Document: Route Mill – Kinetic Industrial Aesthetic
+# Design Document: Magnesium – Kinetic Industrial Aesthetic
 
 ## 1. Design Philosophy
 **"Kinetic Industrialism"**

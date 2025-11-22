@@ -41,7 +41,7 @@ export async function createRoute(data: typeof routes.$inferInsert) {
 
   const validated = RouteSchema.parse(data);
   await db.insert(routes).values(validated);
-  revalidatePath("/gym");
+  revalidatePath("/sets");
   revalidatePath("/admin");
 }
 
@@ -52,7 +52,7 @@ export async function updateRoute(id: string, data: Partial<typeof routes.$infer
   const validated = RouteSchema.partial().parse(data);
   await db.update(routes).set(validated).where(eq(routes.id, id));
   revalidatePath(`/route/${id}`);
-  revalidatePath("/gym");
+  revalidatePath("/sets");
   revalidatePath("/admin");
 }
 
@@ -62,7 +62,7 @@ export async function deleteRoute(id: string) {
 
   if (!id) throw new Error("ID is required");
   await db.delete(routes).where(eq(routes.id, id));
-  revalidatePath("/gym");
+  revalidatePath("/sets");
   revalidatePath("/admin");
 }
 
@@ -104,7 +104,7 @@ export async function logAttempt(routeId: string) {
     user_image: session.user.image,
     route_id: routeId,
     action_type: "ATTEMPT",
-    content: "Attempted",
+    content: null,
   });
 }
 
@@ -292,7 +292,7 @@ export async function ingestRoutes() {
       }
     }
 
-    revalidatePath("/gym");
+    revalidatePath("/sets");
     revalidatePath("/admin");
     return { success: true, count, archivedCount };
   } catch (error: any) {
@@ -420,79 +420,71 @@ export async function getBrowserRoutes(): Promise<BrowserRoute[]> {
   const session = await auth();
   const userId = session?.user?.id;
 
-  // 1. Get all active routes
-  const activeRoutes = await db.select().from(routes).where(eq(routes.status, "active"));
+  // 1. Get all active routes with aggregation
+  // We use a left join to get aggregation data efficiently
+  const routesData = await db
+    .select({
+      id: routes.id,
+      wall_id: routes.wall_id,
+      grade: routes.grade,
+      color: routes.color,
+      setter_name: routes.setter_name,
+      set_date: routes.set_date,
+      attributes: routes.attributes,
+      difficulty_label: routes.difficulty_label,
+      style: routes.style,
+      hold_type: routes.hold_type,
+      status: routes.status,
+      avg_rating: sql<number>`COALESCE(AVG(CASE WHEN ${activityLogs.action_type} = 'RATING' THEN CAST(${activityLogs.content} AS INTEGER) END), 0)`,
+      comment_count: sql<number>`COUNT(CASE WHEN ${activityLogs.action_type} = 'COMMENT' THEN 1 END)`,
+    })
+    .from(routes)
+    .leftJoin(activityLogs, eq(routes.id, activityLogs.route_id))
+    .where(eq(routes.status, "active"))
+    .groupBy(routes.id);
 
-  // 2. Get aggregates (Rating & Comments)
-  // Doing this in JS for simplicity as Drizzle aggregation with multiple counts can be tricky without subqueries
-  // and we assume < 1000 routes. For scale, use SQL `GROUP BY`.
-  const allActivity = await db.select({
-    route_id: activityLogs.route_id,
-    action_type: activityLogs.action_type,
-    content: activityLogs.content,
-  }).from(activityLogs);
+  // 2. Get user status efficiently if logged in
+  const userStatusMap = new Map<string, "SEND" | "FLASH">();
+  if (userId) {
+    const userActivity = await db
+      .select({
+        route_id: activityLogs.route_id,
+        action_type: activityLogs.action_type,
+      })
+      .from(activityLogs)
+      .where(
+        and(
+          eq(activityLogs.user_id, userId),
+          or(eq(activityLogs.action_type, "SEND"), eq(activityLogs.action_type, "FLASH"))
+        )
+      );
 
-  // 3. Get user status
-  const userActivity = userId ? await db.select({
-    route_id: activityLogs.route_id,
-    action_type: activityLogs.action_type,
-  }).from(activityLogs).where(
-    and(
-      eq(activityLogs.user_id, userId),
-      or(eq(activityLogs.action_type, "SEND"), eq(activityLogs.action_type, "FLASH"))
-    )
-  ) : [];
+    for (const log of userActivity) {
+      const current = userStatusMap.get(log.route_id);
+      if (log.action_type === "FLASH") {
+        userStatusMap.set(log.route_id, "FLASH");
+      } else if (log.action_type === "SEND" && current !== "FLASH") {
+        userStatusMap.set(log.route_id, "SEND");
+      }
+    }
+  }
 
-  // Map data
-  const routeMap = new Map<string, BrowserRoute>();
-
-  for (const route of activeRoutes) {
-    routeMap.set(route.id, {
-      ...route,
+  // 3. Map and sort
+  return routesData
+    .map((route) => ({
+      id: route.id,
+      wall_id: route.wall_id,
+      grade: route.grade,
+      color: route.color,
+      setter_name: route.setter_name,
       set_date: route.set_date, // Ensure string
       attributes: route.attributes || [],
       difficulty_label: route.difficulty_label,
       style: route.style,
       hold_type: route.hold_type,
-      avg_rating: 0,
-      comment_count: 0,
-      user_status: null,
-    });
-  }
-
-  // Aggregates
-  const ratings: Record<string, number[]> = {};
-
-  for (const log of allActivity) {
-    const route = routeMap.get(log.route_id);
-    if (!route) continue;
-
-    if (log.action_type === "COMMENT") {
-      route.comment_count++;
-    } else if (log.action_type === "RATING" && log.content) {
-      if (!ratings[log.route_id]) ratings[log.route_id] = [];
-      ratings[log.route_id].push(parseInt(log.content));
-    }
-  }
-
-  // Calculate Avg Rating
-  for (const [routeId, scores] of Object.entries(ratings)) {
-    const route = routeMap.get(routeId);
-    if (route && scores.length > 0) {
-      const sum = scores.reduce((a, b) => a + b, 0);
-      route.avg_rating = sum / scores.length;
-    }
-  }
-
-  // User Status
-  for (const log of userActivity) {
-    const route = routeMap.get(log.route_id);
-    if (route) {
-      // FLASH overrides SEND if both exist (though unlikely to have both validly)
-      if (log.action_type === "FLASH") route.user_status = "FLASH";
-      else if (log.action_type === "SEND" && route.user_status !== "FLASH") route.user_status = "SEND";
-    }
-  }
-
-  return Array.from(routeMap.values()).sort((a, b) => new Date(b.set_date).getTime() - new Date(a.set_date).getTime());
+      avg_rating: Number(route.avg_rating),
+      comment_count: Number(route.comment_count),
+      user_status: userStatusMap.get(route.id) || null,
+    }))
+    .sort((a, b) => new Date(b.set_date).getTime() - new Date(a.set_date).getTime());
 }

@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, date, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, date, jsonb, timestamp, index } from "drizzle-orm/pg-core";
 
 export const routes = pgTable("routes", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -28,6 +28,12 @@ export const activityLogs = pgTable("activity_logs", {
   content: text("content"),
   metadata: jsonb("metadata").$type<{ is_beta?: boolean }>().default({}),
   created_at: timestamp("created_at").defaultNow(),
+}, (table) => {
+  return {
+    routeIdx: index("activity_logs_route_idx").on(table.route_id),
+    userIdx: index("activity_logs_user_idx").on(table.user_id),
+    actionTypeIdx: index("activity_logs_action_type_idx").on(table.action_type),
+  };
 });
 
 export const personalNotes = pgTable("personal_notes", {

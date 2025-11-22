@@ -8,7 +8,7 @@ import { ArrowUpDown, Check, Zap, Star, MessageSquare, Filter } from "lucide-rea
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 
-type SortField = "grade" | "color" | "wall_id" | "avg_rating" | "comment_count" | "set_date" | "setter_name";
+type SortField = "grade" | "color" | "wall_id" | "avg_rating" | "comment_count" | "set_date" | "setter_name" | "style" | "hold_type";
 type SortDirection = "asc" | "desc";
 
 export default function RouteBrowser({ routes }: { routes: BrowserRoute[] }) {
@@ -16,6 +16,15 @@ export default function RouteBrowser({ routes }: { routes: BrowserRoute[] }) {
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [filterWall, setFilterWall] = useState<string>("all");
   const [filterGrade, setFilterGrade] = useState<string>("all");
+  const [filterStyle, setFilterStyle] = useState<string>("all");
+  const [filterHold, setFilterHold] = useState<string>("all");
+  const [filterSetter, setFilterSetter] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+
+  // Derive unique values for filters
+  const styles = useMemo(() => Array.from(new Set(routes.map(r => r.style).filter(Boolean))).sort(), [routes]);
+  const holds = useMemo(() => Array.from(new Set(routes.map(r => r.hold_type).filter(Boolean))).sort(), [routes]);
+  const setters = useMemo(() => Array.from(new Set(routes.map(r => r.setter_name).filter(Boolean))).sort(), [routes]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -30,9 +39,17 @@ export default function RouteBrowser({ routes }: { routes: BrowserRoute[] }) {
     return routes.filter((route) => {
       if (filterWall !== "all" && route.wall_id !== filterWall) return false;
       if (filterGrade !== "all" && route.grade !== filterGrade) return false;
+      if (filterStyle !== "all" && route.style !== filterStyle) return false;
+      if (filterHold !== "all" && route.hold_type !== filterHold) return false;
+      if (filterSetter !== "all" && route.setter_name !== filterSetter) return false;
+      
+      if (filterStatus === "sent" && route.user_status !== "SEND" && route.user_status !== "FLASH") return false;
+      if (filterStatus === "flashed" && route.user_status !== "FLASH") return false;
+      if (filterStatus === "unattempted" && route.user_status) return false;
+      
       return true;
     });
-  }, [routes, filterWall, filterGrade]);
+  }, [routes, filterWall, filterGrade, filterStyle, filterHold, filterSetter, filterStatus]);
 
   const sortedRoutes = useMemo(() => {
     return [...filteredRoutes].sort((a, b) => {
@@ -40,10 +57,16 @@ export default function RouteBrowser({ routes }: { routes: BrowserRoute[] }) {
       let valB: any = b[sortField];
 
       if (sortField === "grade") {
-        valA = GRADES.indexOf(a.grade as any);
-        valB = GRADES.indexOf(b.grade as any);
+        const idxA = GRADES.indexOf(a.grade as any);
+        const idxB = GRADES.indexOf(b.grade as any);
+        valA = idxA === -1 ? 999 : idxA;
+        valB = idxB === -1 ? 999 : idxB;
       }
       
+      // Handle nulls/undefined
+      if (valA === null || valA === undefined) valA = "";
+      if (valB === null || valB === undefined) valB = "";
+
       if (valA < valB) return sortDirection === "asc" ? -1 : 1;
       if (valA > valB) return sortDirection === "asc" ? 1 : -1;
       return 0;
@@ -51,19 +74,24 @@ export default function RouteBrowser({ routes }: { routes: BrowserRoute[] }) {
   }, [filteredRoutes, sortField, sortDirection]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 py-1 md:py-6">
       {/* Filters */}
-      <Card className="p-4 flex flex-col md:flex-row gap-4 items-center justify-between bg-white">
-        <div className="flex items-center gap-2 text-black font-bold uppercase tracking-widest text-xs font-mono">
-          <Filter className="w-4 h-4" />
-          <span>Filters</span>
+      <Card className="p-4  flex flex-col gap-4 bg-white">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-black font-bold uppercase tracking-widest text-xs font-mono">
+            <Filter className="w-4 h-4" />
+            <span>Filters</span>
+          </div>
+          <div className="text-xs text-slate-500 font-mono uppercase tracking-widest">
+            {sortedRoutes.length} routes found
+          </div>
         </div>
         
-        <div className="flex gap-4 w-full md:w-auto">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <select
             value={filterWall}
             onChange={(e) => setFilterWall(e.target.value)}
-            className="bg-white border-2 border-black px-3 py-2 text-xs font-mono uppercase tracking-widest focus:outline-none focus:bg-slate-50 w-full md:w-48"
+            className="bg-white border-2 border-black px-3 py-2 text-xs font-mono uppercase tracking-widest focus:outline-none focus:bg-slate-50 w-full"
           >
             <option value="all">All Walls</option>
             {WALLS.map((w) => (
@@ -74,17 +102,57 @@ export default function RouteBrowser({ routes }: { routes: BrowserRoute[] }) {
           <select
             value={filterGrade}
             onChange={(e) => setFilterGrade(e.target.value)}
-            className="bg-white border-2 border-black px-3 py-2 text-xs font-mono uppercase tracking-widest focus:outline-none focus:bg-slate-50 w-full md:w-32"
+            className="bg-white border-2 border-black px-3 py-2 text-xs font-mono uppercase tracking-widest focus:outline-none focus:bg-slate-50 w-full"
           >
             <option value="all">All Grades</option>
             {GRADES.map((g) => (
               <option key={g} value={g}>{g}</option>
             ))}
           </select>
-        </div>
-        
-        <div className="text-xs text-slate-500 font-mono uppercase tracking-widest">
-          {sortedRoutes.length} routes found
+
+          <select
+            value={filterStyle}
+            onChange={(e) => setFilterStyle(e.target.value)}
+            className="bg-white border-2 border-black px-3 py-2 text-xs font-mono uppercase tracking-widest focus:outline-none focus:bg-slate-50 w-full"
+          >
+            <option value="all">All Styles</option>
+            {styles.map((s) => (
+              <option key={s as string} value={s as string}>{s}</option>
+            ))}
+          </select>
+
+          <select
+            value={filterHold}
+            onChange={(e) => setFilterHold(e.target.value)}
+            className="bg-white border-2 border-black px-3 py-2 text-xs font-mono uppercase tracking-widest focus:outline-none focus:bg-slate-50 w-full"
+          >
+            <option value="all">All Holds</option>
+            {holds.map((h) => (
+              <option key={h as string} value={h as string}>{h}</option>
+            ))}
+          </select>
+
+          <select
+            value={filterSetter}
+            onChange={(e) => setFilterSetter(e.target.value)}
+            className="bg-white border-2 border-black px-3 py-2 text-xs font-mono uppercase tracking-widest focus:outline-none focus:bg-slate-50 w-full"
+          >
+            <option value="all">All Setters</option>
+            {setters.map((s) => (
+              <option key={s as string} value={s as string}>{s}</option>
+            ))}
+          </select>
+
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="bg-white border-2 border-black px-3 py-2 text-xs font-mono uppercase tracking-widest focus:outline-none focus:bg-slate-50 w-full"
+          >
+            <option value="all">All Status</option>
+            <option value="sent">Sent / Flashed</option>
+            <option value="flashed">Flashed Only</option>
+            <option value="unattempted">Unattempted</option>
+          </select>
         </div>
       </Card>
 
@@ -102,6 +170,12 @@ export default function RouteBrowser({ routes }: { routes: BrowserRoute[] }) {
                 </th>
                 <th className="px-6 py-4 cursor-pointer hover:text-violet-600 transition-colors" onClick={() => handleSort("wall_id")}>
                   <div className="flex items-center gap-1">Wall <ArrowUpDown className="w-3 h-3" /></div>
+                </th>
+                <th className="px-6 py-4 cursor-pointer hover:text-violet-600 transition-colors" onClick={() => handleSort("style")}>
+                  <div className="flex items-center gap-1">Style <ArrowUpDown className="w-3 h-3" /></div>
+                </th>
+                <th className="px-6 py-4 cursor-pointer hover:text-violet-600 transition-colors" onClick={() => handleSort("hold_type")}>
+                  <div className="flex items-center gap-1">Holds <ArrowUpDown className="w-3 h-3" /></div>
                 </th>
                 <th className="px-6 py-4 cursor-pointer hover:text-violet-600 transition-colors" onClick={() => handleSort("avg_rating")}>
                   <div className="flex items-center gap-1">Rating <ArrowUpDown className="w-3 h-3" /></div>
@@ -134,6 +208,12 @@ export default function RouteBrowser({ routes }: { routes: BrowserRoute[] }) {
                   </td>
                   <td className="px-6 py-4 text-slate-600 font-medium">
                     {WALLS.find(w => w.id === route.wall_id)?.name || route.wall_id}
+                  </td>
+                  <td className="px-6 py-4 text-slate-600">
+                    {route.style || "-"}
+                  </td>
+                  <td className="px-6 py-4 text-slate-600">
+                    {route.hold_type || "-"}
                   </td>
                   <td className="px-6 py-4">
                     {route.avg_rating > 0 ? (

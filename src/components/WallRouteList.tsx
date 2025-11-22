@@ -20,7 +20,7 @@ export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
     <div className="flex-1 flex flex-col h-full relative">
       
       {/* Tape Rack (Horizontal Scroll) */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide flex items-center px-4 md:px-12 gap-1 md:gap-2 pb-32 pt-8">
+      <div className="flex-1 overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide flex items-center px-4 md:px-12 gap-1 md:gap-2 pb-20 pt-8">
         {routes.map((route) => {
           const isSelected = selectedRouteId === route.id;
 
@@ -92,12 +92,12 @@ export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
       {/* Details Panel (Fixed Bottom) */}
       <div 
         className={cn(
-          "fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] transition-transform duration-300 ease-out z-50",
+          "fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] transition-transform duration-300 ease-out z-50 safe-area-bottom",
           selectedRoute ? "translate-y-0" : "translate-y-full"
         )}
       >
         {selectedRoute && (
-          <div className="max-w-3xl mx-auto p-4 md:p-6 pb-8 safe-area-bottom">
+          <div className="max-w-3xl mx-auto p-4 md:p-6 pb-4 md:pb-8">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">

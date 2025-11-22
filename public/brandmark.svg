@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="100"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 100">
+  <rect width="250" height="100" fill="#E1261D" rx="10"></rect>
+  <text x="10" y="35" font-family="monospace" font-size="20" fill="white" opacity="0.89">Rock Mill</text>
+  <text x="125" y="78" font-family="sans-serif" font-weight="bold" font-size="42" text-anchor="middle" fill="#f8fafc">Magnesium</text>
+  <text x="90" y="90" font-family="monospace" font-size="12" text-anchor="end" fill="white" opacity="0.89"></text>
+  <rect x="5" y="5" width="240" height="90" rx="5" fill="none" stroke="white" stroke-width="2" opacity="0.9"></rect>
+</svg><style>@media (prefers-color-scheme: light) { :root { filter: none; } }
+@media (prefers-color-scheme: dark) { :root { filter: none; } }
+</style></svg>
