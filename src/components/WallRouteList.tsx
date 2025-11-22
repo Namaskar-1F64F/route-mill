@@ -6,39 +6,65 @@ import { Star, MessageSquare, Zap, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
-// Deterministic blob shapes
-const BLOB_SHAPES = [
-  "60% 40% 30% 70% / 60% 30% 70% 40%",
-  "30% 70% 70% 30% / 30% 30% 70% 70%",
-  "50% 50% 20% 80% / 25% 80% 20% 75%",
-  "70% 30% 30% 70% / 60% 40% 60% 40%",
-  "40% 60% 60% 40% / 40% 60% 40% 60%",
-  "30% 70% 50% 50% / 30% 30% 70% 70%",
-  "60% 40% 40% 60% / 70% 30% 70% 30%",
-  "50% 50% 40% 60% / 50% 50% 60% 40%",
-  "50% 50% 40% 60% / 50% 50% 60% 40%",
-  "50% 50% 40% 60% / 50% 50% 60% 40%",
-  "50% 50% 40% 60% / 50% 50% 60% 40%",
-  "50% 50% 40% 60% / 50% 50% 60% 40%",
-  "50% 50% 40% 60% / 50% 50% 60% 40%",
-  "50% 50% 40% 60% / 50% 50% 60% 40%",
-  "23% 56% 78% 23% / 23% 56% 78% 23%",
-];
+/**
+ * A simple Linear Congruential Generator for deterministic randomness.
+ * We use this so the layout looks random but stays the same 
+ * everytime you visit the page (no hydration errors).
+ */
+class SeededRNG {
+  private seed: number;
 
-function getBlobShape(seed: string) {
-  // Simple hash to pick a shape
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+  constructor(seedString: string) {
+    let hash = 0;
+    for (let i = 0; i < seedString.length; i++) {
+      hash = ((hash << 5) - hash) + seedString.charCodeAt(i);
+      hash |= 0;
+    }
+    this.seed = Math.abs(hash);
   }
-  const index = Math.abs(hash) % BLOB_SHAPES.length;
-  return BLOB_SHAPES[index];
+
+  /** Returns a float between 0 and 1 */
+  next(): number {
+    this.seed = (this.seed * 9301 + 49297) % 233280;
+    return this.seed / 233280;
+  }
+
+  /** Returns number between min and max */
+  range(min: number, max: number): number {
+    return this.next() * (max - min) + min;
+  }
+}
+
+function generateOrganicStyles(routeId: string, wallId: string, grade: string) {
+  const seedKey = `${wallId}-${routeId}-${grade}`;
+  const rng = new SeededRNG(seedKey);
+
+  // 1. Border Radius: 
+  // We allow a wider range (30-70) to ensure they don't look too square,
+  // but maintain enough internal space for the text.
+  const r = () => Math.floor(rng.range(40, 60));
+  const borderRadius = `${r()}% ${r()}% ${r()}% ${r()}% / ${r()}% ${r()}% ${r()}% ${r()}%`;
+
+  // 2. Rotation: 
+  // Rotate between -12deg and 12deg to break the grid lines
+  const rotate = rng.range(-6, 6);
+
+  // 3. Scale:
+  // Vary size slightly (0.9 to 1.1) so they aren't all uniform visual weight
+  const scale = rng.range(0.95, 1.05);
+
+  // 4. Translation (The "Free Flow" Factor):
+  // Nudge them slightly up/down/left/right so they don't align in rows
+  const x = rng.range(-5, 5);
+  const y = rng.range(-5, 5);
+
+  return { borderRadius, rotate, scale, x, y };
 }
 
 export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
   return (
-    <motion.div 
-      className="flex-1 overflow-y-auto p-4 md:p-8 pb-24"
+    <motion.div
+      className="flex-1 overflow-y-auto p-4 pb-32" // Added extra padding bottom
       layoutScroll
     >
       {routes.length === 0 ? (
@@ -49,42 +75,56 @@ export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-8">
+        /* LAYOUT CHANGE: 
+           Replaced Grid with Flex-Wrap.
+           gap-x-4 gap-y-12 ensures they cluster but have vertical breathing room for the random offsets.
+        */
+        <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-12 md:gap-x-12 md:gap-y-16 max-w-7xl mx-auto">
           {routes.map((route) => {
-            // Hash based on multiple properties for more variety
-            const seed = `${route.wall_id}-${route.grade}-${route.color}-${route.set_date}`;
-            const borderRadius = getBlobShape(seed);
-            
+            const styles = generateOrganicStyles(route.id, route.wall_id, route.grade);
+
             return (
               <Link
                 key={route.id}
                 href={`/route/${route.id}`}
-                className="group relative flex items-center justify-center aspect-square z-0 hover:z-10 transition-all duration-300"
+                // SIZING CHANGE:
+                // w-32 h-32 (Mobile) -> w-44 h-44 (Tablet) -> w-56 h-56 (Desktop)
+                // This automatically handles your "smaller on smaller screens" request
+                className="relative group z-0 hover:z-10 w-32 h-32 md:w-44 md:h-44 lg:w-56 lg:h-56 flex-shrink-0"
+                style={{
+                  // Apply the random nudge (translation) here on the container
+                  transform: `translate(${styles.x}px, ${styles.y}px)`
+                }}
               >
                 <motion.div
                   layoutId={`route-card-${route.id}`}
-                  className="absolute inset-0 w-full h-full shadow-lg transition-transform duration-300 ease-out group-hover:scale-105 group-hover:shadow-xl"
-                  style={{ 
+                  className="w-full h-full shadow-lg transition-all duration-300 ease-out group-hover:scale-110 group-hover:shadow-2xl group-hover:rotate-0"
+                  style={{
                     backgroundColor: route.color,
-                    borderRadius: borderRadius,
+                    borderRadius: styles.borderRadius,
+                    // Apply rotation and scale to the blob itself
+                    transform: `rotate(${styles.rotate}deg) scale(${styles.scale})`
                   }}
                 >
                   {/* Texture Overlay */}
                   <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/concrete-wall.png')] mix-blend-multiply pointer-events-none rounded-[inherit]" />
-                  
+
                   {/* Inner Shadow/Highlight for 3D effect */}
                   <div className="absolute inset-0 rounded-[inherit] ring-1 ring-black/5 shadow-[inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-2px_4px_rgba(0,0,0,0.1)] pointer-events-none" />
 
-                  {/* Content Container */}
+                  {/* Content Container - Counter-rotate to keep text straight? 
+                      Optional: Currently I left text rotating with the blob for a sticker feel. 
+                      If you want text straight, add transform: `rotate(${-styles.rotate}deg)` to this div.
+                  */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
-                    
+
                     {/* Grade */}
                     <motion.div layoutId={`route-grade-${route.id}`} className="relative z-10">
-                      <span className="text-3xl md:text-4xl font-black text-black/80 drop-shadow-sm">
+                      <span className="text-3xl md:text-5xl font-black text-black/80 drop-shadow-sm">
                         {route.grade}
                       </span>
                       {route.difficulty_label && (
-                        <span className="block text-[10px] font-bold uppercase tracking-wider text-black/60 mt-1">
+                        <span className="block text-[8px] md:text-[10px] font-bold uppercase tracking-wider text-black/60 mt-1 leading-tight">
                           {route.difficulty_label}
                         </span>
                       )}
@@ -92,7 +132,7 @@ export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
 
                     {/* Top Right: Status */}
                     {route.user_status && (
-                      <div className="absolute top-3 right-3 md:top-4 md:right-4">
+                      <div className="absolute top-2 right-2 md:top-5 md:right-5">
                         <div className={cn(
                           "w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center shadow-sm ring-2 ring-white/50",
                           route.user_status === "FLASH" ? "bg-yellow-400 text-black" : "bg-green-500 text-white"
@@ -103,20 +143,20 @@ export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
                     )}
 
                     {/* Bottom Info Row */}
-                    <div className="absolute bottom-4 left-0 right-0 flex items-center justify-center gap-3 md:gap-4 px-4">
+                    <div className="absolute bottom-3 md:bottom-6 left-0 right-0 flex items-center justify-center gap-2 md:gap-3 px-4">
                       {/* Rating */}
                       {route.avg_rating > 0 && (
-                        <div className="flex items-center gap-1 text-black/70 bg-white/30 backdrop-blur-[2px] px-1.5 py-0.5 rounded-full">
+                        <div className="flex items-center gap-1 text-black/70 bg-white/30 backdrop-blur-[2px] px-1.5 py-0.5 rounded-full shadow-sm">
                           <Star className="w-3 h-3 fill-current" />
-                          <span className="text-xs font-bold">{route.avg_rating.toFixed(1)}</span>
+                          <span className="text-[10px] md:text-xs font-bold">{route.avg_rating.toFixed(1)}</span>
                         </div>
                       )}
-                      
+
                       {/* Comments */}
                       {route.comment_count > 0 && (
-                        <div className="flex items-center gap-1 text-black/70 bg-white/30 backdrop-blur-[2px] px-1.5 py-0.5 rounded-full">
+                        <div className="flex items-center gap-1 text-black/70 bg-white/30 backdrop-blur-[2px] px-1.5 py-0.5 rounded-full shadow-sm">
                           <MessageSquare className="w-3 h-3" />
-                          <span className="text-xs font-bold">{route.comment_count}</span>
+                          <span className="text-[10px] md:text-xs font-bold">{route.comment_count}</span>
                         </div>
                       )}
                     </div>
